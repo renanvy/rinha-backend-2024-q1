@@ -11,8 +11,12 @@ defmodule Rinha.Router do
     json_decoder: Jason
   )
 
-  get "/hello" do
-    send_resp(conn, 200, "Hello World!")
+  post "/clientes/:id/transacoes" do
+    send_resp(conn, 200, "Transações!")
+  end
+
+  get "/clientes/:id/extrato" do
+    send_resp(conn, 200, "Extrato!")
   end
 
   match _ do
