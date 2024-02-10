@@ -10,6 +10,7 @@ defmodule Rinha.Application do
     children = [
       # Starts a worker by calling: Rinha.Worker.start_link(arg)
       # {Rinha.Worker, arg}
+      {Bandit, plug: Rinha.Router, scheme: :http, port: 4000}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
