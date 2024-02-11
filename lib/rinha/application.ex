@@ -10,7 +10,7 @@ defmodule Rinha.Application do
     topologies = [
       epmd: [
         strategy: Cluster.Strategy.Epmd,
-        config: [hosts: [:rinha@api01, :rinha@api02]]
+        config: [hosts: nodes()]
       ]
     ]
 
@@ -29,5 +29,9 @@ defmodule Rinha.Application do
 
   defp port do
     Application.get_env(:rinha, :port, 4000)
+  end
+
+  defp nodes do
+    Application.get_env(:rinha, :nodes, [])
   end
 end

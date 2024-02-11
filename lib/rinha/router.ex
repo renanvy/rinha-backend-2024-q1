@@ -16,7 +16,6 @@ defmodule Rinha.Router do
   end
 
   get "/clientes/:id/extrato" do
-    IO.inspect(Node.list())
     send_resp(conn, 200, "Extrato!")
   end
 
