@@ -7,9 +7,15 @@ defmodule Rinha.Application do
 
   @impl true
   def start(_type, _args) do
+    topologies = [
+      epmd: [
+        strategy: Cluster.Strategy.Epmd,
+        config: [hosts: [:rinha@api01, :rinha@api02]]
+      ]
+    ]
+
     children = [
-      # Starts a worker by calling: Rinha.Worker.start_link(arg)
-      # {Rinha.Worker, arg}
+      {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
       {Bandit, plug: Rinha.Router, scheme: :http, port: port()}
     ]
 

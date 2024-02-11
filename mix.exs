@@ -23,7 +23,8 @@ defmodule Rinha.MixProject do
   defp deps do
     [
       {:bandit, "~> 1.0"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4"},
+      {:libcluster, "~> 3.3"}
     ]
   end
 end
