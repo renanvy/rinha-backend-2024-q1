@@ -14,6 +14,8 @@ defmodule Rinha.Application do
       ]
     ]
 
+    Database.start()
+
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
       {Bandit, plug: Rinha.Router, scheme: :http, port: port()}
