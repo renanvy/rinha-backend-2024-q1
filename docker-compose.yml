@@ -12,7 +12,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.2"
+          cpus: "0.6"
           memory: "100MB"
 
     networks:
