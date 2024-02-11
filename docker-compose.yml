@@ -13,7 +13,7 @@ services:
       resources:
         limits:
           cpus: "1.2"
-          memory: "530MB"
+          memory: "100MB"
 
     networks:
       - rinha-nginx-2024q1
