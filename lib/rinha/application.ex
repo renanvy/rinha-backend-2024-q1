@@ -14,7 +14,8 @@ defmodule Rinha.Application do
       ]
     ]
 
-    Database.start()
+    Rinha.Database.start()
+    Rinha.Seeds.start()
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
