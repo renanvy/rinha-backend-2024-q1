@@ -18,8 +18,6 @@ defmodule Rinha.Database do
   end
 
   defp create_schema do
-    :mnesia.delete_schema(@nodes)
-
     case :mnesia.create_schema(@nodes) do
       :ok ->
         Logger.info("schema has been created")
