@@ -1,13 +1,8 @@
 defmodule Rinha.Database do
   require Logger
 
-  import Rinha.Helpers, only: [check_nodes_connection: 0]
-
-  @nodes Application.compile_env(:rinha, :nodes, [])
-
   def start do
-    with :ok <- check_nodes_connection(),
-         :ok <- create_schema(),
+    with :ok <- create_schema(),
          :ok <- :mnesia.start(),
          :ok <- create_tables() do
       :ok
@@ -18,7 +13,7 @@ defmodule Rinha.Database do
   end
 
   defp create_schema do
-    case :mnesia.create_schema(@nodes) do
+    case :mnesia.create_schema([node()]) do
       :ok ->
         Logger.info("schema has been created")
         :ok
@@ -44,6 +39,7 @@ defmodule Rinha.Database do
     case :mnesia.create_table(
            Customer,
            attributes: [:id, :name, :limit, :balance],
+           disc_only_copies: [node()],
            index: []
          ) do
       {:atomic, :ok} ->
@@ -64,6 +60,7 @@ defmodule Rinha.Database do
     case :mnesia.create_table(
            Transaction,
            attributes: [:id, :customer_id, :amount, :inserted_at, :type, :description],
+           disc_only_copies: [node()],
            index: [:customer_id]
          ) do
       {:atomic, :ok} ->

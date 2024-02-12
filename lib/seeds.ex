@@ -1,14 +1,12 @@
 defmodule Rinha.Seeds do
   require Logger
 
-  import Rinha.Helpers, only: [check_nodes_connection: 0]
-
   def start do
-    with :ok <- check_nodes_connection(),
-         {:atomic, :ok} <- create_customers() do
-      Logger.info("Seeds successfully executed")
-      :ok
-    else
+    case create_customers() do
+      {:atomic, :ok} ->
+        Logger.info("Seeds successfully executed")
+        :ok
+
       error ->
         error
     end
