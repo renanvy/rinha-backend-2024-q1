@@ -30,9 +30,18 @@ defmodule Rinha.Database do
   end
 
   defp create_schema(node) do
-    :mnesia.create_schema([node])
+    :mnesia.delete_schema([node])
 
-    Logger.info("schema has been created")
+    case :mnesia.create_schema([node]) do
+      :ok ->
+        Logger.info("schema has been created")
+
+      {:error, {_node, {:already_exists, _}}} ->
+        Logger.info("schema already exists")
+
+      error ->
+        Logger.info("error creating schema #{inspect(error)}")
+    end
 
     :ok
   end

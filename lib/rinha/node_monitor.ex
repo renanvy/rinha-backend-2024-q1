@@ -6,6 +6,8 @@ defmodule Rinha.NodeMonitor do
 
   require Logger
 
+  @first_node Application.compile_env!(:rinha, :nodes) |> List.first()
+
   def start_link(_args) do
     GenServer.start_link(__MODULE__, [], name: {:global, __MODULE__})
   end
@@ -14,7 +16,9 @@ defmodule Rinha.NodeMonitor do
   def init(_args) do
     :ok = :net_kernel.monitor_nodes(true)
 
-    Process.send_after(self(), :config_database, 500)
+    if node() == @first_node do
+      Process.send_after(self(), :config_database, 500)
+    end
 
     {:ok, []}
   end

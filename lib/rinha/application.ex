@@ -17,7 +17,7 @@ defmodule Rinha.Application do
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
       {Bandit, plug: Rinha.Router, scheme: :http, port: port()},
-      Rinha.NodeMonitor
+      {Highlander, Rinha.NodeMonitor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
