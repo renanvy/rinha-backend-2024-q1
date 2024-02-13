@@ -30,6 +30,8 @@ defmodule Rinha.Database do
   end
 
   defp create_schema(node) do
+    # :mnesia.delete_schema([node])
+
     case :mnesia.create_schema([node]) do
       :ok ->
         Logger.info("schema has been created")
@@ -46,8 +48,8 @@ defmodule Rinha.Database do
 
   def replicate_tables(node) do
     :mnesia.change_config(:extra_db_nodes, [node])
-    :mnesia.add_table_copy(Customer, node, :disc_only_copies)
-    :mnesia.add_table_copy(Transaction, node, :disc_only_copies)
+    :mnesia.add_table_copy(:customer, node, :disc_only_copies)
+    :mnesia.add_table_copy(:transaction, node, :disc_only_copies)
 
     :ok
   end
@@ -59,7 +61,7 @@ defmodule Rinha.Database do
 
   defp create_table_customers do
     case :mnesia.create_table(
-           Customer,
+           :customer,
            attributes: [:id, :name, :limit, :balance],
            index: [],
            disc_only_copies: [node()]
@@ -68,7 +70,7 @@ defmodule Rinha.Database do
         Logger.info("customers table has been created")
         :ok
 
-      {:aborted, {:already_exists, Customer}} ->
+      {:aborted, {:already_exists, :customer}} ->
         Logger.info("customers table already exists")
         :ok
 
@@ -80,7 +82,7 @@ defmodule Rinha.Database do
 
   defp create_table_transactions do
     case :mnesia.create_table(
-           Transaction,
+           :transaction,
            attributes: [:id, :customer_id, :amount, :inserted_at, :type, :description],
            index: [:customer_id],
            disc_only_copies: [node()]
@@ -89,7 +91,7 @@ defmodule Rinha.Database do
         Logger.info("transactions table has been created")
         :ok
 
-      {:aborted, {:already_exists, Transaction}} ->
+      {:aborted, {:already_exists, :transaction}} ->
         Logger.info("transactions table already exists")
         :ok
 

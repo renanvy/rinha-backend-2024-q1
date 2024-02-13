@@ -7,6 +7,8 @@ ARG RUNNER_IMAGE="alpine:${ALPINE_VERSION}"
 
 FROM ${BUILDER_IMAGE} as builder
 
+RUN apk upgrade -U && apk add git curl
+
 # prepare build dir
 WORKDIR /app
 
