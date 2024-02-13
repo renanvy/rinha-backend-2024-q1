@@ -72,14 +72,6 @@ defmodule Rinha.Database do
         Logger.info("customers table already exists")
         :ok
 
-      {:aborted, {:bad_type, Customer, :disc_only_copies, _}} ->
-        Logger.info("customers table already exists")
-        :ok
-
-      {:aborted, {:not_active, Customer, _}} ->
-        Logger.info("customers table already exists")
-        :ok
-
       error ->
         Logger.error("customers table was not created: #{inspect(error)}")
         error
