@@ -21,6 +21,7 @@ defmodule Rinha.Database do
     with :ok <- create_schema(node),
          :ok <- :rpc.call(node, :mnesia, :start, []),
          :ok <- replicate_tables(node) do
+      Logger.info("Table replicated for #{inspect(node)}")
       :ok
     else
       error ->
@@ -30,8 +31,6 @@ defmodule Rinha.Database do
   end
 
   defp create_schema(node) do
-    # :mnesia.delete_schema([node])
-
     case :mnesia.create_schema([node]) do
       :ok ->
         Logger.info("schema has been created")
