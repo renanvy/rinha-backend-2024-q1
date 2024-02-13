@@ -17,7 +17,7 @@ defmodule Rinha.NodeMonitor do
     :ok = :net_kernel.monitor_nodes(true)
 
     if node() == @first_node do
-      Process.send_after(self(), setup_database, 500)
+      Process.send_after(self(), :setup_database, 500)
     end
 
     {:ok, []}

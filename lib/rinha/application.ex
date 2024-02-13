@@ -16,7 +16,7 @@ defmodule Rinha.Application do
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
-      {Bandit, plug: Rinha.Router, scheme: :http, port: port()},
+      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()},
       {Highlander, Rinha.NodeMonitor}
     ]
 
