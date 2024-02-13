@@ -93,14 +93,6 @@ defmodule Rinha.Database do
         Logger.info("transactions table already exists")
         :ok
 
-      {:aborted, {:bad_type, Transaction, :disc_only_copies, _}} ->
-        Logger.info("transactions table already exists")
-        :ok
-
-      {:aborted, {:not_active, Transaction, _}} ->
-        Logger.info("customers table already exists")
-        :ok
-
       error ->
         Logger.error("transactions table was not created: #{inspect(error)}")
         error
