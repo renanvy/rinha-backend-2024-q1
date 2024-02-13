@@ -1,46 +1,68 @@
 defmodule Rinha.Database do
   require Logger
 
-  def start do
-    with :ok <- create_schema(),
+  def setup do
+    with :stopped <- :mnesia.stop(),
+         :ok <- create_schema(node()),
          :ok <- :mnesia.start(),
-         :ok <- create_tables() do
+         :ok <- create_tables(),
+         :ok <- Rinha.Seeds.start() do
       :ok
     else
       error ->
-        error
+        Logger.error("Error configuring mnesia: #{inspect(error)}")
+        :ok
     end
   end
 
-  defp create_schema do
-    case :mnesia.create_schema([node()]) do
+  def replicate(node) do
+    :rpc.call(node, :mnesia, :stop, [])
+
+    with :ok <- create_schema(node),
+         :ok <- :rpc.call(node, :mnesia, :start, []),
+         :ok <- replicate_tables(node) do
+      :ok
+    else
+      error ->
+        Logger.error("Error configuring mnesia nodes: #{inspect(error)}")
+        :ok
+    end
+  end
+
+  defp create_schema(node) do
+    case :mnesia.create_schema([node]) do
       :ok ->
         Logger.info("schema has been created")
-        :ok
 
-      {:error, {_, {:already_exists, _}}} ->
+      {:error, {_node, {:already_exists, _}}} ->
         Logger.info("schema already exists")
-        :ok
 
       error ->
-        Logger.error("schema was not created: #{inspect(error)}")
-        error
+        Logger.info("error creating schema #{inspect(error)}")
     end
+
+    :ok
+  end
+
+  def replicate_tables(node) do
+    :mnesia.change_config(:extra_db_nodes, [node])
+    :mnesia.add_table_copy(Customer, node, :disc_only_copies)
+    :mnesia.add_table_copy(Transaction, node, :disc_only_copies)
+
+    :ok
   end
 
   defp create_tables do
-    with :ok <- create_table_customers(),
-         :ok <- create_table_transactions() do
-      :ok
-    end
+    :ok = create_table_customers()
+    :ok = create_table_transactions()
   end
 
   defp create_table_customers do
     case :mnesia.create_table(
            Customer,
            attributes: [:id, :name, :limit, :balance],
-           disc_only_copies: [node()],
-           index: []
+           index: [],
+           disc_only_copies: [node()]
          ) do
       {:atomic, :ok} ->
         Logger.info("customers table has been created")
@@ -60,8 +82,8 @@ defmodule Rinha.Database do
     case :mnesia.create_table(
            Transaction,
            attributes: [:id, :customer_id, :amount, :inserted_at, :type, :description],
-           disc_only_copies: [node()],
-           index: [:customer_id]
+           index: [:customer_id],
+           disc_only_copies: [node()]
          ) do
       {:atomic, :ok} ->
         Logger.info("transactions table has been created")

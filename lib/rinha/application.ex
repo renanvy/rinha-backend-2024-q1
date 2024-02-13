@@ -14,12 +14,10 @@ defmodule Rinha.Application do
       ]
     ]
 
-    Rinha.Database.start()
-    Rinha.Seeds.start()
-
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
-      {Bandit, plug: Rinha.Router, scheme: :http, port: port()}
+      {Bandit, plug: Rinha.Router, scheme: :http, port: port()},
+      {Highlander, Rinha.NodeMonitor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

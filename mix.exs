@@ -24,7 +24,8 @@ defmodule Rinha.MixProject do
     [
       {:bandit, "~> 1.0"},
       {:jason, "~> 1.4"},
-      {:libcluster, "~> 3.3"}
+      {:libcluster, "~> 3.3"},
+      {:highlander, github: "norbajunior/highlander"}
     ]
   end
 end
