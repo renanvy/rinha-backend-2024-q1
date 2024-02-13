@@ -24,7 +24,7 @@ defmodule Rinha.NodeMonitor do
   end
 
   @impl true
-  def handle_info(:config_database, state) do
+  def handle_info(:setup_database, state) do
     Rinha.Database.setup()
 
     {:noreply, state}
