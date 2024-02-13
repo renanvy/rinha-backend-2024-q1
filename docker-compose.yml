@@ -3,7 +3,7 @@ version: "3.5"
 services:
   api01: &api
     build: .
-    # image: rinha-norba-renan-elixir:latest
+    # image: norbajr/rinha-norba-renan-elixir:latest
     hostname: api01
     environment:
       - RELEASE_NODE=rinha
