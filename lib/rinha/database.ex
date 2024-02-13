@@ -68,7 +68,7 @@ defmodule Rinha.Database do
         Logger.info("customers table has been created")
         :ok
 
-      {:aborted, {_, Customer}} ->
+      {:aborted, {:already_exists, Customer}} ->
         Logger.info("customers table already exists")
         :ok
 
