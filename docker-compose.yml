@@ -13,10 +13,10 @@ services:
       resources:
         limits:
           cpus: "0.6"
-          memory: "100MB"
+          memory: "270MB"
 
     networks:
-      - rinha-nginx-2024q1
+      - elixir-cluster
 
   api02:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
@@ -25,6 +25,11 @@ services:
     environment:
       - RELEASE_NODE=rinha
       - RELEASE_COOKIE=rinha
+
+    depends_on:
+      - api01
+
+    command: [ "sh", "-c", "sleep 3 && /app/bin/rinha start" ]
 
   nginx:
     image: nginx:latest
@@ -40,10 +45,10 @@ services:
       resources:
         limits:
           cpus: "0.3"
-          memory: "20MB"
+          memory: "10MB"
 
     networks:
-      - rinha-nginx-2024q1
+      - elixir-cluster
 
 # O uso do modo `bridge` deve ser adequado à carga que será usada no teste.
 # A edição anterior se beneficiou do modo host pois o volume de requisições
@@ -52,5 +57,5 @@ services:
 # modo que quiser desde que não conflite com portas trivialmente usadas em um
 # SO.
 networks:
-  rinha-nginx-2024q1:
+  elixir-cluster:
     driver: bridge
