@@ -16,7 +16,7 @@ defmodule Rinha.NodeMonitor do
   def init(_args) do
     :ok = :net_kernel.monitor_nodes(true)
 
-    if node() == @first_node do
+    if node() == :rinha1@BRSAOLN039355 do
       Process.send_after(self(), :setup_database, 500)
     end
 
