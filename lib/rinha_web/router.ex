@@ -1,7 +1,7 @@
 defmodule RinhaWeb.Router do
   use Plug.Router
 
-  alias Rinha.Transactions
+  alias Rinha.{Statements, Transactions}
 
   plug(Plug.Logger)
   plug(:match)
@@ -22,11 +22,12 @@ defmodule RinhaWeb.Router do
       description: conn.body_params["descricao"]
     }
 
+    conn = put_resp_content_type(conn, "application/json")
+
     case Transactions.create_transaction(params) do
       {:ok, transaction} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(
+        send_resp(
+          conn,
           200,
           Jason.encode!(%{
             limite: transaction.customer.limit,
@@ -35,14 +36,11 @@ defmodule RinhaWeb.Router do
         )
 
       {:error, :customer_not_found} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
+        send_resp(conn, 404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(
+        send_resp(
+          conn,
           422,
           Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
         )
@@ -50,7 +48,34 @@ defmodule RinhaWeb.Router do
   end
 
   get "/clientes/:id/extrato" do
-    send_resp(conn, 200, "Extrato!")
+    conn = put_resp_content_type(conn, "application/json")
+
+    case Statements.get_statement(String.to_integer(conn.params["id"])) do
+      {:ok, {customer, transactions}} ->
+        send_resp(
+          conn,
+          200,
+          Jason.encode!(%{
+            "saldo" => %{
+              "total" => customer.balance,
+              "data_extrato" => DateTime.utc_now(:millisecond),
+              "limite" => customer.limit
+            },
+            "ultimas_transacoes" =>
+              Enum.map(transactions, fn {_, _id, amount, _c_id, type, description, inserted_at} ->
+                %{
+                  "valor" => amount,
+                  "tipo" => type,
+                  "descricao" => description,
+                  "realizada_em" => inserted_at
+                }
+              end)
+          })
+        )
+
+      {:error, :customer_not_found} ->
+        send_resp(conn, 404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
+    end
   end
 
   match _ do

@@ -35,4 +35,10 @@ defmodule Rinha.Transactions.Transaction do
       inserted_at: DateTime.utc_now()
     }
   end
+
+  def query({:by_customer_id, customer_id}) do
+    [
+      {{:_, :"$1", customer_id, :"$3", :"$4", :"$5", :"$6"}, [], [{{:"$_"}}]}
+    ]
+  end
 end

@@ -19,8 +19,8 @@ defmodule Rinha.Transactions do
         transaction = Transaction.new(attrs)
 
         :mnesia.write(
-          {:transaction, transaction.id, transaction.customer_id, transaction.amount,
-           transaction.inserted_at, transaction.type, transaction.description}
+          {:transaction, transaction.id, transaction.amount, transaction.customer_id,
+           transaction.type, transaction.description, transaction.inserted_at}
         )
 
         {:ok, transaction}
