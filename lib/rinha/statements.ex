@@ -3,11 +3,9 @@ defmodule Rinha.Statements do
 
   """
 
-  alias Rinha.Customers
-
   def get_statement(customer_id) do
     :mnesia.transaction(fn ->
-      {:ok, customer} = Customers.get_customer(customer_id)
+      customer = :mnesia.read({:customer, customer_id})
 
       transactions =
         :mnesia.match_object(:transaction, {:transaction, :_, :_, customer_id, :_, :_, :_}, :read)
@@ -15,11 +13,17 @@ defmodule Rinha.Statements do
       {customer, transactions}
     end)
     |> case do
-      {:atomic, result} ->
-        {:ok, result}
+      {:atomic, {[], _}} ->
+        {:error, :customer_not_found}
+
+      {:atomic, {[customer], transactions}} ->
+        {:ok, customer, transactions}
 
       {:aborted, error} ->
         {:error, error}
+
+      error ->
+        error
     end
   end
 end
