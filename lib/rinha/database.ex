@@ -31,7 +31,7 @@ defmodule Rinha.Database do
   end
 
   defp create_schema(node) do
-    :mnesia.delete_schema([node])
+    # :mnesia.delete_schema([node])
 
     case :mnesia.create_schema([node]) do
       :ok ->
