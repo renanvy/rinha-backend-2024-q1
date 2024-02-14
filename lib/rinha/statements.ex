@@ -18,14 +18,14 @@ defmodule Rinha.Statements do
 
       Qlc.delete_cursor(ql_handler)
 
-      {:ok, customer, transactions}
+      {customer, transactions, DateTime.utc_now(:millisecond)}
     end)
     |> case do
-      {:atomic, {:ok, [], _}} ->
+      {:atomic, {[], _, _}} ->
         {:error, :customer_not_found}
 
-      {:atomic, {:ok, [customer], transactions}} ->
-        {:ok, customer, transactions}
+      {:atomic, {[customer], transactions, statement_datetime}} ->
+        {:ok, customer, transactions, statement_datetime}
 
       {:aborted, error} ->
         {:error, error}

@@ -51,14 +51,14 @@ defmodule RinhaWeb.Router do
     conn = put_resp_content_type(conn, "application/json")
 
     case Statements.get_statement(String.to_integer(conn.params["id"])) do
-      {:ok, {:customer, _id, _name, limit, balance}, transactions} ->
+      {:ok, {:customer, _id, _name, limit, balance}, transactions, statement_datetime} ->
         send_resp(
           conn,
           200,
           Jason.encode!(%{
             "saldo" => %{
               "total" => balance,
-              "data_extrato" => DateTime.utc_now(:millisecond),
+              "data_extrato" => statement_datetime,
               "limite" => limit
             },
             "ultimas_transacoes" =>
