@@ -50,7 +50,38 @@ defmodule RinhaWeb.Router do
   end
 
   get "/clientes/:id/extrato" do
-    send_resp(conn, 200, "Extrato!")
+    customer_id = conn.params["id"] && String.to_integer(conn.params["id"])
+
+    case Transactions.get_transactions(customer_id) do
+      {:ok, result} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(200, Jason.encode!(render_transactions(result)))
+
+      {:error, :customer_not_found} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
+    end
+  end
+
+  defp render_transactions(result) do
+    %{
+      saldo: %{
+        total: result.customer.balance,
+        data_extrato: DateTime.utc_now(),
+        limite: result.customer.limit
+      },
+      ultimas_transacoes:
+        Enum.map(result.transactions, fn transaction ->
+          %{
+            valor: transaction.amount,
+            tipo: transaction.type,
+            descricao: transaction.description,
+            realizada_em: transaction.inserted_at
+          }
+        end)
+    }
   end
 
   match _ do

@@ -1,68 +1,48 @@
 defmodule Rinha.Database do
   require Logger
 
-  def setup do
-    with :stopped <- :mnesia.stop(),
-         :ok <- create_schema(node()),
+  def start do
+    :mnesia.stop()
+
+    with :ok <- create_schema(),
          :ok <- :mnesia.start(),
-         :ok <- create_tables(),
-         :ok <- Rinha.Seeds.start() do
+         :ok <- create_tables() do
       :ok
     else
       error ->
-        Logger.error("Error configuring mnesia: #{inspect(error)}")
-        :ok
+        error
     end
   end
 
-  def replicate(node) do
-    :rpc.call(node, :mnesia, :stop, [])
+  defp create_schema() do
+    :mnesia.delete_schema([node()])
 
-    with :ok <- create_schema(node),
-         :ok <- :rpc.call(node, :mnesia, :start, []),
-         :ok <- replicate_tables(node) do
-      Logger.info("Table replicated for #{inspect(node)}")
-      :ok
-    else
-      error ->
-        Logger.error("Error configuring mnesia nodes: #{inspect(error)}")
-        :ok
-    end
-  end
-
-  defp create_schema(node) do
-    case :mnesia.create_schema([node]) do
+    case :mnesia.create_schema([node()]) do
       :ok ->
         Logger.info("schema has been created")
+        :ok
 
       {:error, {_node, {:already_exists, _}}} ->
         Logger.info("schema already exists")
+        :ok
 
       error ->
         Logger.info("error creating schema #{inspect(error)}")
+        error
     end
-
-    :ok
-  end
-
-  def replicate_tables(node) do
-    :mnesia.change_config(:extra_db_nodes, [node])
-    :mnesia.add_table_copy(:customer, node, :disc_only_copies)
-    :mnesia.add_table_copy(:transaction, node, :disc_only_copies)
-
-    :ok
   end
 
   defp create_tables do
-    :ok = create_table_customers()
-    :ok = create_table_transactions()
+    with :ok <- create_table_customers(),
+         :ok <- create_table_transactions() do
+      :ok
+    end
   end
 
   defp create_table_customers do
     case :mnesia.create_table(
            :customer,
            attributes: [:id, :name, :limit, :balance],
-           index: [],
            disc_only_copies: [node()]
          ) do
       {:atomic, :ok} ->

@@ -13,10 +13,7 @@ services:
       resources:
         limits:
           cpus: "0.6"
-          memory: "270MB"
-
-    networks:
-      - elixir-cluster
+          memory: "260MB"
 
   api02:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
@@ -45,17 +42,4 @@ services:
       resources:
         limits:
           cpus: "0.3"
-          memory: "10MB"
-
-    networks:
-      - elixir-cluster
-
-# O uso do modo `bridge` deve ser adequado à carga que será usada no teste.
-# A edição anterior se beneficiou do modo host pois o volume de requisições
-# era relativamente alto e a virtualização da rede se tornou um gargalo, mas
-# este modo é mais complexo de ser configurado. Fique à vontade para usar o
-# modo que quiser desde que não conflite com portas trivialmente usadas em um
-# SO.
-networks:
-  elixir-cluster:
-    driver: bridge
+          memory: "30MB"
