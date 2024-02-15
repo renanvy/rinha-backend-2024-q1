@@ -9,16 +9,16 @@ defmodule Rinha.Statements do
       customer = :mnesia.read({:customer, customer_id})
 
       ql_handler =
-        "[T || {_, _, _, CustomerId, _, _, _} = T <- Transactions, CustomerId =:= Id]"
+        "[T || {_, _, CustomerId, _, _, _, _} = T <- Transactions, CustomerId =:= Id]"
         |> Qlc.q(Transactions: :mnesia.table(:transaction), Id: customer_id)
-        |> Qlc.keysort(4, order: :descending)
+        |> Qlc.keysort(3, order: :descending)
         |> Qlc.cursor()
 
       transactions = Qlc.next_answers(ql_handler, 10)
 
       Qlc.delete_cursor(ql_handler)
 
-      {customer, transactions, DateTime.utc_now(:millisecond)}
+      {customer, transactions, DateTime.utc_now()}
     end)
     |> case do
       {:atomic, {[], _, _}} ->
