@@ -3,13 +3,15 @@ defmodule Rinha.Transactions do
   alias Rinha.Transactions.Transaction
 
   def create_transaction(attrs) do
-    :mnesia.transaction(fn ->
-      with {:ok, customer} <- Customers.get_customer(attrs[:customer_id]),
-           {:ok, transaction} <- do_create_transaction(attrs),
-           {:ok, customer} <- Customers.update_balance(customer, transaction) do
-        {:ok, %{transaction | customer: customer}}
+    :rpc.call(:rinha@api01, :mnesia, :transaction, [
+      fn ->
+        with {:ok, customer} <- Customers.get_customer(attrs[:customer_id]),
+             {:ok, transaction} <- do_create_transaction(attrs),
+             {:ok, customer} <- Customers.update_balance(customer, transaction) do
+          {:ok, %{transaction | customer: customer}}
+        end
       end
-    end)
+    ])
     |> handle_transaction_result()
   end
 

@@ -15,7 +15,7 @@ defmodule Rinha.NodeMonitor do
     :ok = :net_kernel.monitor_nodes(true)
 
     if String.contains?(Atom.to_string(node()), "api01") do
-      Process.send_after(self(), :setup_database, 500)
+      send(self(), :setup_database)
     end
 
     {:ok, []}
@@ -30,10 +30,6 @@ defmodule Rinha.NodeMonitor do
 
   @impl true
   def handle_info({:nodeup, node}, state) do
-    if String.contains?(Atom.to_string(node), "api02") do
-      Rinha.Database.replicate(node)
-    end
-
     {:noreply, [node | state]}
   end
 

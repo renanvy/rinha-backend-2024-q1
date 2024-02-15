@@ -7,6 +7,10 @@ defmodule Rinha.Application do
 
   @impl true
   def start(_type, _args) do
+    if node() == :rinha@api01 do
+      Rinha.Database.setup()
+    end
+
     topologies = [
       epmd: [
         strategy: Cluster.Strategy.Epmd,
@@ -16,8 +20,7 @@ defmodule Rinha.Application do
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
-      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()},
-      {Highlander, Rinha.NodeMonitor}
+      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -2,6 +2,8 @@ defmodule Rinha.Customers do
   alias Rinha.Customers.Customer
   alias Rinha.Transactions.Transaction
 
+  @mnesia_node :rinha@api01
+
   def get_customer(id) do
     case :mnesia.read({:customer, id}) do
       [{:customer, id, name, limit, balance}] ->
@@ -28,7 +30,9 @@ defmodule Rinha.Customers do
          }) do
       %Ecto.Changeset{valid?: true} ->
         customer = Customer.new(%{customer | balance: new_balance})
+
         :mnesia.write({:customer, customer.id, customer.name, customer.limit, customer.balance})
+
         {:ok, customer}
 
       changeset ->

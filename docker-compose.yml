@@ -12,8 +12,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.7"
-          memory: "260MB"
+          cpus: "0.8"
+          memory: "300MB"
 
     networks:
       - elixir-cluster
@@ -26,10 +26,15 @@ services:
       - RELEASE_NODE=rinha
       - RELEASE_COOKIE=rinha
 
+    deploy:
+      resources:
+        limits:
+          cpus: "0.4"
+          memory: "200MB"
+
     depends_on:
       - api01
-
-    command: [ "sh", "-c", "sleep 3 && /app/bin/rinha start" ]
+    # command: [ "sh", "-c", "sleep 3 && /app/bin/rinha start" ]
 
   nginx:
     image: nginx:latest
@@ -44,7 +49,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.1"
+          cpus: "0.2"
           memory: "50MB"
 
     networks:
