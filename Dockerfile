@@ -19,8 +19,6 @@ RUN mix local.hex --force && \
 # set build ENV
 ENV MIX_ENV="prod"
 
-ENV HOSTNAME=${hostname}
-
 # set default port number
 # ENV PORT=4000
 
