@@ -20,7 +20,7 @@ RUN mix local.hex --force && \
 ENV MIX_ENV="prod"
 
 # set default port number
-# ENV PORT=4000
+ENV PORT=4000
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
@@ -41,7 +41,7 @@ COPY lib lib
 RUN mix compile
 
 # Changes to config/runtime.exs don't require recompiling the code
-COPY config/runtime.exs config/
+# COPY config/runtime.exs config/
 
 COPY rel rel
 RUN mix release

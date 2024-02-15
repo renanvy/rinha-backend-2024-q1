@@ -9,7 +9,8 @@ defmodule Rinha.Application do
   def start(_type, _args) do
     topologies = [
       epmd: [
-        strategy: Cluster.Strategy.Gossip
+        strategy: Cluster.Strategy.Epmd,
+        config: [hosts: nodes() -- [Node.self()]]
       ]
     ]
 
@@ -27,5 +28,9 @@ defmodule Rinha.Application do
 
   defp port do
     Application.get_env(:rinha, :port, 4000)
+  end
+
+  defp nodes do
+    Application.get_env(:rinha, :nodes, [])
   end
 end
