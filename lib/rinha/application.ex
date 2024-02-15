@@ -9,14 +9,13 @@ defmodule Rinha.Application do
   def start(_type, _args) do
     topologies = [
       epmd: [
-        strategy: Cluster.Strategy.Epmd,
-        config: [hosts: nodes()]
+        strategy: Cluster.Strategy.Gossip
       ]
     ]
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
-      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()},
+      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: System.get_env("PORT", "4000")},
       {Highlander, Rinha.NodeMonitor}
     ]
 
@@ -24,13 +23,5 @@ defmodule Rinha.Application do
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Rinha.Supervisor]
     Supervisor.start_link(children, opts)
-  end
-
-  defp port do
-    Application.get_env(:rinha, :port, 4000)
-  end
-
-  defp nodes do
-    Application.get_env(:rinha, :nodes, [])
   end
 end
