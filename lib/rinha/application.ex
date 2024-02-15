@@ -15,7 +15,7 @@ defmodule Rinha.Application do
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
-      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: System.get_env("PORT", "4000")},
+      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()},
       {Highlander, Rinha.NodeMonitor}
     ]
 
@@ -23,5 +23,9 @@ defmodule Rinha.Application do
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Rinha.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp port do
+    Application.get_env(:rinha, :port, 4000)
   end
 end
