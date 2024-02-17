@@ -1,9 +1,9 @@
 defmodule Rinha.Database do
   require Logger
 
-  def setup do
+  def setup(nodes) when is_list(nodes) do
     with :stopped <- :mnesia.stop(),
-         :ok <- create_schema([node()]),
+         :ok <- create_schema(nodes),
          :ok <- :mnesia.start(),
          :ok <- create_tables(),
          :ok <- Rinha.Seeds.start() do
@@ -15,19 +15,19 @@ defmodule Rinha.Database do
     end
   end
 
-  def replicate(node) do
-    :rpc.call(node, :mnesia, :stop, [])
+  # def replicate(node) do
+  #   :rpc.call(node, :mnesia, :stop, [])
 
-    with :ok <- :rpc.call(node, :mnesia, :start, []),
-         :ok <- replicate_tables(node) do
-      Logger.info("Table replicated for #{inspect(node)}")
-      :ok
-    else
-      error ->
-        Logger.error("Error configuring mnesia nodes: #{inspect(error)}")
-        :ok
-    end
-  end
+  #   with :ok <- :rpc.call(node, :mnesia, :start, []),
+  #        :ok <- replicate_tables(node) do
+  #     Logger.info("Table replicated for #{inspect(node)}")
+  #     :ok
+  #   else
+  #     error ->
+  #       Logger.error("Error configuring mnesia nodes: #{inspect(error)}")
+  #       :ok
+  #   end
+  # end
 
   defp create_schema(node) do
     case :mnesia.create_schema([node]) do
@@ -44,15 +44,15 @@ defmodule Rinha.Database do
     :ok
   end
 
-  def replicate_tables(node) do
-    :mnesia.change_config(:extra_db_nodes, [node])
-    :mnesia.add_table_copy(:schema, node, :disc_copies)
-    :mnesia.add_table_copy(:customer, node, :disc_copies)
-    :mnesia.add_table_copy(:transaction, node, :disc_copies)
-    :mnesia.add_table_copy(:statement, node, :disc_copies)
+  # def replicate_tables(node) do
+  #   :mnesia.change_config(:extra_db_nodes, [node])
+  #   :mnesia.add_table_copy(:schema, node, :disc_copies)
+  #   :mnesia.add_table_copy(:customer, node, :disc_copies)
+  #   :mnesia.add_table_copy(:transaction, node, :disc_copies)
+  #   :mnesia.add_table_copy(:statement, node, :disc_copies)
 
-    :ok
-  end
+  #   :ok
+  # end
 
   defp create_tables do
     :ok = create_table_customers()
