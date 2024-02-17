@@ -60,7 +60,7 @@ defmodule RinhaWeb.Router do
   get "/clientes/:id/extrato" do
     customer_id = conn.params["id"] && String.to_integer(conn.params["id"])
 
-    if customer < 1 || customer_id > 5 do
+    if customer_id < 1 || customer_id > 5 do
       conn
       |> put_resp_content_type("application/json")
       |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
