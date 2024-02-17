@@ -106,7 +106,7 @@ defmodule Rinha.Database do
            :statement,
            attributes: [:customer_id, :limit, :balance, :last_transactions],
            disc_copies: [node()],
-           type: :ordered_set
+           index: [:customer_id]
          ) do
       {:atomic, :ok} ->
         Logger.info("statement table has been created")
