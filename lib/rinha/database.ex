@@ -5,7 +5,7 @@ defmodule Rinha.Database do
     with :stopped <- :mnesia.stop(),
          :ok <- create_schema(nodes),
          :ok <- :mnesia.start(),
-         :ok <- create_tables(),
+         :ok <- create_tables(nodes),
          :ok <- Rinha.Seeds.start() do
       :ok
     else
@@ -29,8 +29,8 @@ defmodule Rinha.Database do
   #   end
   # end
 
-  defp create_schema(node) do
-    case :mnesia.create_schema([node]) do
+  defp create_schema(nodes) do
+    case :mnesia.create_schema(nodes) do
       :ok ->
         Logger.info("schema has been created")
 
@@ -54,18 +54,17 @@ defmodule Rinha.Database do
   #   :ok
   # end
 
-  defp create_tables do
-    :ok = create_table_customers()
-    :ok = create_table_transactions()
-    :ok = create_table_statements()
+  defp create_tables(nodes) do
+    :ok = create_table_customers(nodes)
+    :ok = create_table_transactions(nodes)
+    :ok = create_table_statements(nodes)
   end
 
-  defp create_table_customers do
+  defp create_table_customers(nodes) do
     case :mnesia.create_table(
            :customer,
            attributes: [:id, :limit, :balance],
-           index: [],
-           disc_copies: [node()]
+           disc_copies: nodes
          ) do
       {:atomic, :ok} ->
         Logger.info("customers table has been created")
@@ -81,12 +80,12 @@ defmodule Rinha.Database do
     end
   end
 
-  defp create_table_transactions do
+  defp create_table_transactions(nodes) do
     case :mnesia.create_table(
            :transaction,
            attributes: [:id, :customer_id, :amount, :inserted_at, :type, :description],
            index: [:customer_id],
-           disc_copies: [node()]
+           disc_copies: nodes
          ) do
       {:atomic, :ok} ->
         Logger.info("transactions table has been created")
@@ -102,11 +101,11 @@ defmodule Rinha.Database do
     end
   end
 
-  defp create_table_statements do
+  defp create_table_statements(nodes) do
     case :mnesia.create_table(
            :statement,
            attributes: [:customer_id, :limit, :balance, :last_transactions],
-           disc_copies: [node()]
+           disc_copies: nodes
          ) do
       {:atomic, :ok} ->
         Logger.info("statement table has been created")
