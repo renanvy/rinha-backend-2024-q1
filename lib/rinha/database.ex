@@ -4,7 +4,7 @@ defmodule Rinha.Database do
   def setup(nodes) when is_list(nodes) do
     with :stopped <- :mnesia.stop(),
          :ok <- create_schema(nodes),
-         :ok <- :mnesia.start(),
+         _ <- :rpc.multicall(nodes, :mnesia, :start, []),
          :ok <- create_tables(nodes),
          :ok <- Rinha.Seeds.start() do
       :ok
