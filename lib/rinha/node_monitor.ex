@@ -18,8 +18,8 @@ defmodule Rinha.NodeMonitor do
   end
 
   @impl true
-  def handle_info({:nodeup, node}, state) do
-    Rinha.Database.setup(nodes)
+  def handle_info({:nodeup, _node}, state) do
+    Rinha.Database.setup(nodes())
 
     {:noreply, state}
   end
