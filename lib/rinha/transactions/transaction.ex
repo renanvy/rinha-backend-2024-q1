@@ -30,6 +30,7 @@ defmodule Rinha.Transactions.Transaction do
       id: UUIDv7.generate(),
       amount: attrs.amount,
       customer_id: attrs.customer_id,
+      customer: attrs.customer,
       type: attrs.type,
       description: attrs.description,
       inserted_at: DateTime.utc_now()

@@ -41,11 +41,6 @@ defmodule Rinha.Customers do
     do_update_balance(customer, transaction, new_balance)
   end
 
-  def update_balance(customer, %Transaction{type: "c", amount: amount} = transaction) do
-    new_balance = customer.balance + amount
-    do_update_balance(customer, transaction, new_balance)
-  end
-
   defp do_update_balance(customer, transaction, new_balance) do
     case Customer.update_balance_changeset(customer, transaction.type, %{
            balance: new_balance

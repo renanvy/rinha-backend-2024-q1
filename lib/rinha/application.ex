@@ -18,7 +18,7 @@ defmodule Rinha.Application do
       {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()},
       {Highlander, Rinha.NodeMonitor},
       Rinha.Transactions.TransactionServer,
-      Rinha.Statements.StatementServer,
+      Rinha.Statements.StatementServer
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

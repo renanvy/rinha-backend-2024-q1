@@ -16,7 +16,7 @@ defmodule Rinha.Statements.StatementServer do
   end
 
   def handle_cast({:add_transaction, transaction}, state) do
-    {:ok, transaction} = Statements.add_transaction(transaction)
+    {:atomic, _transaction} = Statements.add_transaction(transaction)
     {:noreply, state}
   end
 end
