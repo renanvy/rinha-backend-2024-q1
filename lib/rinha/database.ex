@@ -3,7 +3,7 @@ defmodule Rinha.Database do
 
   def setup do
     with :stopped <- :mnesia.stop(),
-         :ok <- create_schema(node()),
+         :ok <- create_schema([node()]),
          :ok <- :mnesia.start(),
          :ok <- create_tables(),
          :ok <- Rinha.Seeds.start() do
@@ -46,6 +46,7 @@ defmodule Rinha.Database do
 
   def replicate_tables(node) do
     :mnesia.change_config(:extra_db_nodes, [node])
+    :mnesia.add_table_copy(:schema, node, :disc_copies)
     :mnesia.add_table_copy(:customer, node, :disc_copies)
     :mnesia.add_table_copy(:transaction, node, :disc_copies)
     :mnesia.add_table_copy(:statement, node, :disc_copies)
