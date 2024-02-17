@@ -1,7 +1,7 @@
 defmodule RinhaWeb.Router do
   use Plug.Router
 
-  alias Rinha.Transactions
+  alias Rinha.{Statements, Transactions}
 
   plug(Plug.Logger)
   plug(:match)
@@ -15,42 +15,77 @@ defmodule RinhaWeb.Router do
   plug(:dispatch)
 
   post "/clientes/:id/transacoes" do
-    params = %{
-      amount: conn.body_params["valor"],
-      customer_id: conn.params["id"] && String.to_integer(conn.params["id"]),
-      type: conn.body_params["tipo"],
-      description: conn.body_params["descricao"]
-    }
+    customer_id = conn.params["id"] && String.to_integer(conn.params["id"])
 
-    case Transactions.create_transaction(params) do
-      {:ok, transaction} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(
-          200,
-          Jason.encode!(%{
-            limite: transaction.customer.limit,
-            saldo: transaction.customer.balance
-          })
-        )
+    if customer_id > 5 do
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
+    else
+      params = %{
+        amount: conn.body_params["valor"],
+        customer_id: customer_id,
+        type: conn.body_params["tipo"],
+        description: conn.body_params["descricao"]
+      }
 
-      {:error, :customer_not_found} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
+      case Transactions.create_transaction(params) do
+        {:ok, transaction} ->
+          conn
+          |> put_resp_content_type("application/json")
+          |> send_resp(
+            200,
+            Jason.encode!(%{
+              limite: transaction.customer.limit,
+              saldo: transaction.customer.balance
+            })
+          )
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(
-          422,
-          Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
-        )
+        {:error, %Ecto.Changeset{} = changeset} ->
+          conn
+          |> put_resp_content_type("application/json")
+          |> send_resp(
+            422,
+            Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
+          )
+      end
     end
   end
 
   get "/clientes/:id/extrato" do
-    send_resp(conn, 200, "Extrato!")
+    customer_id = conn.params["id"] && String.to_integer(conn.params["id"])
+
+    if customer_id > 5 do
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
+    else
+      {:ok, statement} = Statements.get_statement(customer_id)
+
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(
+        200,
+        Jason.encode!(%{
+          saldo: %{
+            total: statement.balance,
+            data_extrato: DateTime.utc_now(),
+            limite: statement.limit
+          },
+          ultimas_transacoes:
+            statement.last_transactions
+            |> Enum.sort_by(& &1.inserted_at, {:desc, DateTime})
+            |> Enum.map(fn transaction ->
+              %{
+                valor: transaction.amount,
+                tipo: transaction.type,
+                descricao: transaction.description,
+                realizada_em: transaction.inserted_at
+              }
+            end)
+        })
+      )
+    end
   end
 
   match _ do

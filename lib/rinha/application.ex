@@ -14,10 +14,14 @@ defmodule Rinha.Application do
       ]
     ]
 
+    # Rinha.Database.start()
+
     children = [
+      {Phoenix.PubSub, name: Rinha.PubSub},
+      {Highlander, Rinha.StatementConsumer},
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
-      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()},
-      {Highlander, Rinha.NodeMonitor}
+      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()}
+      # {Highlander, Rinha.NodeMonitor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

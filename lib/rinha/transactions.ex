@@ -7,7 +7,9 @@ defmodule Rinha.Transactions do
       with {:ok, customer} <- Customers.get_customer(attrs[:customer_id]),
            {:ok, transaction} <- do_create_transaction(attrs),
            {:ok, customer} <- Customers.update_balance(customer, transaction) do
-        {:ok, %{transaction | customer: customer}}
+        transaction = %{transaction | customer: customer}
+        Phoenix.PubSub.broadcast(Rinha.PubSub, "new_transaction", transaction)
+        {:ok, transaction}
       end
     end)
     |> handle_transaction_result()
