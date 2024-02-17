@@ -10,7 +10,7 @@ defmodule Rinha.Application do
     topologies = [
       epmd: [
         strategy: Cluster.Strategy.Epmd,
-        config: [hosts: nodes()]
+        config: [osts: nodes() -- [Node.self()]]
       ]
     ]
 

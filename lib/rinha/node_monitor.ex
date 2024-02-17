@@ -6,8 +6,6 @@ defmodule Rinha.NodeMonitor do
 
   require Logger
 
-  @first_node Application.compile_env!(:rinha, :nodes) |> List.first()
-
   def start_link(_args) do
     GenServer.start_link(__MODULE__, [], name: {:global, __MODULE__})
   end
@@ -16,7 +14,7 @@ defmodule Rinha.NodeMonitor do
   def init(_args) do
     :ok = :net_kernel.monitor_nodes(true)
 
-    if node() == @first_node do
+    if String.contains?(Atom.to_string(node()), "api01") do
       Process.send_after(self(), :setup_database, 500)
     end
 
@@ -32,7 +30,9 @@ defmodule Rinha.NodeMonitor do
 
   @impl true
   def handle_info({:nodeup, node}, state) do
-    Rinha.Database.replicate(node)
+    if String.contains?(Atom.to_string(node), "api02") do
+      Rinha.Database.replicate(node)
+    end
 
     {:noreply, [node | state]}
   end
