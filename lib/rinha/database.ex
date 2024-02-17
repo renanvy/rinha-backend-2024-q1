@@ -18,8 +18,7 @@ defmodule Rinha.Database do
   def replicate(node) do
     :rpc.call(node, :mnesia, :stop, [])
 
-    with :ok <- create_schema(node),
-         :ok <- :rpc.call(node, :mnesia, :start, []),
+    with :ok <- :rpc.call(node, :mnesia, :start, []),
          :ok <- replicate_tables(node) do
       Logger.info("Table replicated for #{inspect(node)}")
       :ok
@@ -49,6 +48,7 @@ defmodule Rinha.Database do
     :mnesia.change_config(:extra_db_nodes, [node])
     :mnesia.add_table_copy(:customer, node, :disc_copies)
     :mnesia.add_table_copy(:transaction, node, :disc_copies)
+    :mnesia.add_table_copy(:statement, node, :disc_copies)
 
     :ok
   end
