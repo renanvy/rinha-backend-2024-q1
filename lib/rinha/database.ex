@@ -105,8 +105,7 @@ defmodule Rinha.Database do
     case :mnesia.create_table(
            :statement,
            attributes: [:customer_id, :limit, :balance, :last_transactions],
-           disc_copies: [node()],
-           index: [:customer_id]
+           disc_copies: [node()]
          ) do
       {:atomic, :ok} ->
         Logger.info("statement table has been created")
