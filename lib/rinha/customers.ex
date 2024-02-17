@@ -15,8 +15,8 @@ defmodule Rinha.Customers do
   def check_limit(customer_id, type, amount) do
     :mnesia.transaction(fn ->
       [{:customer, customer_id, limit, balance}] = :mnesia.read({:customer, customer_id})
-      customer = Customer.new(%{id: id, limit: limit, balance: balance})
-      new_balance = new_balance(customer, type)
+      customer = Customer.new(%{id: customer_id, limit: limit, balance: balance})
+      new_balance = new_balance(customer, type, amount)
 
       case Customer.update_balance_changeset(customer, type, %{balance: new_balance}) do
         %Ecto.Changeset{valid?: true} ->
@@ -28,8 +28,8 @@ defmodule Rinha.Customers do
     end)
   end
 
-  def new_balance(customer, "d"), do: customer.balance - amount
-  def new_balance(customer, "c"), do: customer.balance + amount
+  def new_balance(customer, "d", amount), do: customer.balance - amount
+  def new_balance(customer, "c", amount), do: customer.balance + amount
 
   def update_balance(customer, %Transaction{type: "c", amount: amount} = transaction) do
     new_balance = customer.balance + amount

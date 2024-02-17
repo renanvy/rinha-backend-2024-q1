@@ -2,9 +2,9 @@ defmodule Rinha.Transactions do
   alias Rinha.Customers
   alias Rinha.Transactions.Transaction
 
-  def create_transaction(transaction_attrs) do
+  def create_transaction(attrs) do
     :mnesia.transaction(fn ->
-      transaction = Transaction.new(transaction_attrs)
+      transaction = Transaction.new(attrs)
 
       :mnesia.write(
         {:transaction, transaction.id, transaction.customer_id, transaction.amount,

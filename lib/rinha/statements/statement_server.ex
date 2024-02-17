@@ -1,4 +1,4 @@
-defmodule Rinha.StatementServer do
+defmodule Rinha.Statements.StatementServer do
   use GenServer
 
   alias Rinha.Statements
