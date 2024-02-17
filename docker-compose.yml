@@ -5,6 +5,8 @@ services:
     build: .
     # image: norbajr/rinha-norba-renan-elixir:latest
     hostname: api01
+    networks:
+      - elixir-cluster
     environment:
       - RELEASE_NODE=rinha
       - RELEASE_COOKIE=rinha
@@ -19,6 +21,8 @@ services:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
     <<: *api
     hostname: api02
+    networks:
+      - elixir-cluster
     environment:
       - RELEASE_NODE=rinha
       - RELEASE_COOKIE=rinha
@@ -32,6 +36,8 @@ services:
     image: nginx:latest
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - elixir-cluster
     depends_on:
       - api01
       - api02
@@ -43,3 +49,7 @@ services:
         limits:
           cpus: "0.15"
           memory: "10MB"
+
+networks:
+  elixir-cluster:
+    driver: bridge
