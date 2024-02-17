@@ -56,6 +56,7 @@ defmodule Rinha.Database do
   defp create_tables do
     :ok = create_table_customers()
     :ok = create_table_transactions()
+    :ok = create_table_statements()
   end
 
   defp create_table_customers do
@@ -96,6 +97,27 @@ defmodule Rinha.Database do
 
       error ->
         Logger.error("transactions table was not created: #{inspect(error)}")
+        error
+    end
+  end
+
+  defp create_table_statements do
+    case :mnesia.create_table(
+           :statement,
+           attributes: [:customer_id, :limit, :balance, :last_transactions],
+           disc_copies: [node()],
+           type: :ordered_set
+         ) do
+      {:atomic, :ok} ->
+        Logger.info("statement table has been created")
+        :ok
+
+      {:aborted, {:already_exists, :statement}} ->
+        Logger.info("statement table already exists")
+        :ok
+
+      error ->
+        Logger.error("statement table was not created: #{inspect(error)}")
         error
     end
   end
