@@ -2,7 +2,9 @@ defmodule Rinha.Database do
   require Logger
 
   def setup(nodes) when is_list(nodes) do
-    with :stopped <- :mnesia.stop(),
+    :rpc.multicall(nodes, :mnesia, :delete_schema, [nodes])
+
+    with _ <- :rpc.multicall(nodes, :mnesia, :stop, []),
          :ok <- create_schema(nodes),
          _ <- :rpc.multicall(nodes, :mnesia, :start, []),
          :ok <- create_tables(nodes),
