@@ -4,21 +4,40 @@ defmodule Rinha.Customers do
 
   def get_customer(id) do
     case :mnesia.read({:customer, id}) do
-      [{:customer, id, name, limit, balance}] ->
-        {:ok, Customer.new(%{id: id, name: name, limit: limit, balance: balance})}
+      [{:customer, id, limit, balance}] ->
+        {:ok, Customer.new(%{id: id, limit: limit, balance: balance})}
 
       [] ->
         {:error, :customer_not_found}
     end
   end
 
-  def update_balance(customer, %Transaction{type: "d", amount: amount} = transaction) do
-    new_balance = customer.balance - amount
-    do_update_balance(customer, transaction, new_balance)
+  def check_limit(customer_id, type, amount) do
+    :mnesia.transaction(fn ->
+      [{:customer, customer_id, limit, balance}] = :mnesia.read({:customer, customer_id})
+      customer = Customer.new(%{id: customer_id, limit: limit, balance: balance})
+      new_balance = new_balance(customer, type, amount)
+
+      case Customer.update_balance_changeset(customer, type, %{balance: new_balance}) do
+        %Ecto.Changeset{valid?: true} ->
+          {:ok, %{customer | balance: new_balance}}
+
+        changeset ->
+          {:error, changeset}
+      end
+    end)
   end
+
+  def new_balance(customer, "d", amount), do: customer.balance - amount
+  def new_balance(customer, "c", amount), do: customer.balance + amount
 
   def update_balance(customer, %Transaction{type: "c", amount: amount} = transaction) do
     new_balance = customer.balance + amount
+    do_update_balance(customer, transaction, new_balance)
+  end
+
+  def update_balance(customer, %Transaction{type: "d", amount: amount} = transaction) do
+    new_balance = customer.balance - amount
     do_update_balance(customer, transaction, new_balance)
   end
 
@@ -28,7 +47,7 @@ defmodule Rinha.Customers do
          }) do
       %Ecto.Changeset{valid?: true} ->
         customer = Customer.new(%{customer | balance: new_balance})
-        :mnesia.write({:customer, customer.id, customer.name, customer.limit, customer.balance})
+        :mnesia.write({:customer, customer.id, customer.limit, customer.balance})
         {:ok, customer}
 
       changeset ->

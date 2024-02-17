@@ -12,8 +12,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.6"
-          memory: "260MB"
+          cpus: "0.7"
+          memory: "270MB"
 
   api02:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
@@ -41,5 +41,5 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.3"
-          memory: "30MB"
+          cpus: "0.15"
+          memory: "10MB"

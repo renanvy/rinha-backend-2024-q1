@@ -10,7 +10,7 @@ defmodule Rinha.Application do
     topologies = [
       epmd: [
         strategy: Cluster.Strategy.Epmd,
-        config: [hosts: nodes()]
+        config: [nodes: nodes()]
       ]
     ]
 
@@ -19,8 +19,10 @@ defmodule Rinha.Application do
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
-      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()}
-      # {Highlander, Rinha.NodeMonitor}
+      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()},
+      {Highlander, Rinha.NodeMonitor},
+      Rinha.Transactions.TransactionServer,
+      Rinha.Statements.StatementServer
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

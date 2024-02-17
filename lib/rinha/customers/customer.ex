@@ -6,7 +6,6 @@ defmodule Rinha.Customers.Customer do
   @primary_key false
   embedded_schema do
     field(:id, :integer)
-    field(:name, :string)
     field(:limit, :integer)
     field(:balance, :integer)
   end
@@ -21,7 +20,6 @@ defmodule Rinha.Customers.Customer do
   def new(attrs) do
     %__MODULE__{
       id: attrs.id,
-      name: attrs.name,
       limit: attrs.limit,
       balance: attrs.balance
     }

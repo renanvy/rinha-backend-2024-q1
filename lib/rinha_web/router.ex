@@ -1,7 +1,7 @@
 defmodule RinhaWeb.Router do
   use Plug.Router
 
-  alias Rinha.Transactions
+  alias Rinha.{Customers, Statements, Transactions}
 
   plug(Plug.Logger)
   plug(:match)
@@ -15,73 +15,82 @@ defmodule RinhaWeb.Router do
   plug(:dispatch)
 
   post "/clientes/:id/transacoes" do
-    params = %{
-      amount: conn.body_params["valor"],
-      customer_id: conn.params["id"] && String.to_integer(conn.params["id"]),
-      type: conn.body_params["tipo"],
-      description: conn.body_params["descricao"]
-    }
+    customer_id = conn.params["id"] && String.to_integer(conn.params["id"])
 
-    case Transactions.create_transaction(params) do
-      {:ok, transaction} ->
+    if customer_id < 1 || customer_id > 5 do
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
+    else
+      params = %{
+        amount: conn.body_params["valor"],
+        customer_id: customer_id,
+        type: conn.body_params["tipo"],
+        description: conn.body_params["descricao"]
+      }
+
+      with %Ecto.Changeset{valid?: true} <- Transactions.Transaction.changeset(params),
+           {:atomic, {:ok, customer}} <-
+             Customers.check_limit(params[:customer_id], params[:type], params[:amount]) do
+        transaction_attrs = Map.put(params, :customer, customer)
+
+        :ok = Transactions.TransactionServer.create_transaction(transaction_attrs)
+
         conn
         |> put_resp_content_type("application/json")
         |> send_resp(
           200,
           Jason.encode!(%{
-            limite: transaction.customer.limit,
-            saldo: transaction.customer.balance
+            limite: customer.limit,
+            saldo: customer.balance
           })
         )
-
-      {:error, :customer_not_found} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(
-          422,
-          Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
-        )
+      else
+        %Ecto.Changeset{valid?: false} = changeset ->
+          conn
+          |> put_resp_content_type("application/json")
+          |> send_resp(
+            422,
+            Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
+          )
+      end
     end
   end
 
   get "/clientes/:id/extrato" do
     customer_id = conn.params["id"] && String.to_integer(conn.params["id"])
 
-    case Transactions.get_transactions(customer_id) do
-      {:ok, result} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(200, Jason.encode!(render_transactions(result)))
+    if customer < 1 || customer_id > 5 do
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
+    else
+      {:ok, statement} = Statements.get_statement(customer_id)
 
-      {:error, :customer_not_found} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(
+        200,
+        Jason.encode!(%{
+          saldo: %{
+            total: statement.balance,
+            data_extrato: DateTime.utc_now(),
+            limite: statement.limit
+          },
+          ultimas_transacoes:
+            statement.last_transactions
+            |> Enum.sort_by(& &1.inserted_at, {:desc, DateTime})
+            |> Enum.map(fn transaction ->
+              %{
+                valor: transaction.amount,
+                tipo: transaction.type,
+                descricao: transaction.description,
+                realizada_em: transaction.inserted_at
+              }
+            end)
+        })
+      )
     end
-  end
-
-  defp render_transactions(result) do
-    %{
-      saldo: %{
-        total: result.customer.balance,
-        data_extrato: DateTime.utc_now(),
-        limite: result.customer.limit
-      },
-      ultimas_transacoes:
-        Enum.map(result.transactions, fn transaction ->
-          %{
-            valor: transaction.amount,
-            tipo: transaction.type,
-            descricao: transaction.description,
-            realizada_em: transaction.inserted_at
-          }
-        end)
-    }
   end
 
   match _ do
