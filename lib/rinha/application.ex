@@ -9,7 +9,8 @@ defmodule Rinha.Application do
   def start(_type, _args) do
     topologies = [
       epmd: [
-        strategy: Cluster.Strategy.Gossip
+        strategy: Cluster.Strategy.Epmd,
+        config: [nodes: nodes()]
       ]
     ]
 

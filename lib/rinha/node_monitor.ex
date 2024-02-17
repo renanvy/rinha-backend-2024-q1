@@ -19,16 +19,16 @@ defmodule Rinha.NodeMonitor do
 
   @impl true
   def handle_info({:nodeup, node}, state) do
-    state = [node | state]
-
-    if length(state) == 2 do
-      Rinha.Database.setup(state)
-    end
+    Rinha.Database.setup(nodes)
 
     {:noreply, state}
   end
 
   def handle_info({:nodedown, node}, state) do
     {:noreply, List.delete(state, node)}
+  end
+
+  defp nodes do
+    Application.get_env(:rinha, :nodes, [])
   end
 end
