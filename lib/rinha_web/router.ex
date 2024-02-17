@@ -53,6 +53,13 @@ defmodule RinhaWeb.Router do
             422,
             Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
           )
+        {:atomic, {:error, %Ecto.Changeset{} = changeset}} ->
+          conn
+          |> put_resp_content_type("application/json")
+          |> send_resp(
+            422,
+            Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
+          )
       end
     end
   end
