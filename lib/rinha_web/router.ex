@@ -17,7 +17,7 @@ defmodule RinhaWeb.Router do
   post "/clientes/:id/transacoes" do
     customer_id = conn.params["id"] && String.to_integer(conn.params["id"])
 
-    if customer_id > 5 do
+    if customer_id < 1 || customer_id > 5 do
       conn
       |> put_resp_content_type("application/json")
       |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
@@ -30,11 +30,11 @@ defmodule RinhaWeb.Router do
       }
 
       with %Ecto.Changeset{valid?: true} <- Transactions.Transaction.changeset(params),
-           {:ok, customer, new_balance} <-
+           {:atomic, {:ok, customer}} <-
              Customers.check_limit(params[:customer_id], params[:type], params[:amount]) do
         transaction_attrs = Map.put(params, :customer, customer)
 
-        :ok = TransactionServer.create_transaction(transaction_attrs)
+        :ok = Transactions.TransactionServer.create_transaction(transaction_attrs)
 
         conn
         |> put_resp_content_type("application/json")
@@ -46,7 +46,7 @@ defmodule RinhaWeb.Router do
           })
         )
       else
-        {:error, %Ecto.Changeset{} = changeset} ->
+        %Ecto.Changeset{valid?: false} = changeset ->
           conn
           |> put_resp_content_type("application/json")
           |> send_resp(

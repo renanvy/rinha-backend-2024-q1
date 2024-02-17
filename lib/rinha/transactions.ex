@@ -1,5 +1,5 @@
 defmodule Rinha.Transactions do
-  alias Rinha.Customers
+  alias Rinha.Statements
   alias Rinha.Transactions.Transaction
 
   def create_transaction(attrs) do
@@ -11,11 +11,9 @@ defmodule Rinha.Transactions do
          transaction.inserted_at, transaction.type, transaction.description}
       )
 
-      :mnesia.write(
-        {:customer, attrs[:customer_id], attrs[:customer][:limit], attrs[:customer][:balance]}
-      )
+      :mnesia.write({:customer, transaction.customer_id, transaction.customer.limit, transaction.customer.balance})
 
-      :ok = StatementServer.add_transaction(transaction)
+      :ok = Statements.StatementServer.add_transaction(transaction)
     end)
   end
 end
