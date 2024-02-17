@@ -15,7 +15,7 @@ defmodule Rinha.Customers do
   def check_limit(customer_id, type, amount) do
     :mnesia.transaction(fn ->
       [{:customer, customer_id, limit, balance}] = :mnesia.read({:customer, customer_id})
-      customer = Customer.new(%{id: id,limit: limit, balance: balance})
+      customer = Customer.new(%{id: id, limit: limit, balance: balance})
       new_balance = new_balance(customer, type)
 
       case Customer.update_balance_changeset(customer, type, %{balance: new_balance}) do

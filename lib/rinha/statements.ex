@@ -1,7 +1,8 @@
 defmodule Rinha.Statements do
   def add_transaction(transaction) do
     :mnesia.transaction(fn ->
-      [{_, _, _, _, last_transactions}] = :mnesia.index_read(:statement, transaction.customer_id, :customer_id)
+      [{_, _, _, _, last_transactions}] =
+        :mnesia.index_read(:statement, transaction.customer_id, :customer_id)
 
       if Enum.count(last_transactions) + 1 < 11 do
         last_transactions = [transaction | last_transactions]

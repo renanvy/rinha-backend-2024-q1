@@ -30,8 +30,8 @@ defmodule RinhaWeb.Router do
       }
 
       with %Ecto.Changeset{valid?: true} <- Transactions.Transaction.changeset(params),
-           {:ok, customer, new_balance} <- Customers.check_limit(params[:customer_id], params[:type], params[:amount]) do
-
+           {:ok, customer, new_balance} <-
+             Customers.check_limit(params[:customer_id], params[:type], params[:amount]) do
         transaction_attrs = Map.put(params, :customer, customer)
 
         :ok = TransactionServer.create_transaction(transaction_attrs)
