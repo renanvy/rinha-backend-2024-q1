@@ -61,7 +61,7 @@ defmodule Rinha.Database do
   defp create_table_customers do
     case :mnesia.create_table(
            :customer,
-           attributes: [:id, :name, :limit, :balance],
+           attributes: [:id, :limit, :balance],
            index: [],
            disc_only_copies: [node()]
          ) do
