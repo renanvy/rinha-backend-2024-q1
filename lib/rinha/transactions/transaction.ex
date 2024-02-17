@@ -7,7 +7,7 @@ defmodule Rinha.Transactions.Transaction do
 
   @primary_key false
   embedded_schema do
-    field(:id, :integer)
+    field(:id, :binary_id)
     field(:amount, :integer)
     field(:customer_id, :integer)
     field(:type, Ecto.Enum, values: [:c, :d])
@@ -27,7 +27,7 @@ defmodule Rinha.Transactions.Transaction do
 
   def new(attrs) do
     %__MODULE__{
-      id: Ecto.UUID.generate(),
+      id: UUIDv7.generate(),
       amount: attrs.amount,
       customer_id: attrs.customer_id,
       type: attrs.type,

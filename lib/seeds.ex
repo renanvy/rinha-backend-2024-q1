@@ -15,15 +15,15 @@ defmodule Rinha.Seeds do
   defp create_customers do
     :mnesia.transaction(fn ->
       case :mnesia.read({:customer, 1}) do
-        [{:customer, 1, _, _, _}] ->
+        [{:customer, 1, _, _}] ->
           []
 
         [] ->
-          :mnesia.write({:customer, 1, "Alice", 100_000, 0})
-          :mnesia.write({:customer, 2, "John", 80000, 0})
-          :mnesia.write({:customer, 3, "Mary", 1_000_000, 0})
-          :mnesia.write({:customer, 4, "Josh", 10_000_000, 0})
-          :mnesia.write({:customer, 5, "Katty", 500_000, 0})
+          :mnesia.write({:customer, 1, 100_000, 0})
+          :mnesia.write({:customer, 2, 80000, 0})
+          :mnesia.write({:customer, 3, 1_000_000, 0})
+          :mnesia.write({:customer, 4, 10_000_000, 0})
+          :mnesia.write({:customer, 5, 500_000, 0})
 
           :mnesia.write({:statement, 1, 100_000, 0, []})
           :mnesia.write({:statement, 2, 80000, 0, []})

@@ -1,21 +1,17 @@
 defmodule Rinha.Database do
   require Logger
 
-  # def start do
-  #   with :ok <- create_schema(),
-  #        {:atomic, _} <- :mnesia.clear_table(:customer),
-  #        {:atomic, _} <- :mnesia.clear_table(:transaction),
-  #        {:atomic, _} <- :mnesia.clear_table(:statement),
-  #        :ok <- Rinha.Seeds.start() do
-  #     :ok
-  #   else
-  #     error ->
-  #       error
-  #   end
-  # end
+  def start do
+    :mnesia.stop
+    :mnesia.delete_schema([:rinha@api01, :rinha@api02])
+    :mnesia.create_schema([:rinha@api01, :rinha@api02])
+    :mnesia.start
+    create_tables()
+    Rinha.Seeds.start()
+  end
 
   defp create_schema() do
-    case :mnesia.create_schema([:rinha@api01, :rinha@api02]) do
+    case :mnesia.create_schema([node()]) do
       :ok ->
         Logger.info("schema has been created")
         :ok
@@ -41,8 +37,8 @@ defmodule Rinha.Database do
   defp create_table_customers do
     case :mnesia.create_table(
            :customer,
-           attributes: [:id, :name, :limit, :balance],
-           disc_copies: [:rinha@api01, :rinha@api02]
+           attributes: [:id, :limit, :balance],
+           disc_copies: [node()]
          ) do
       {:atomic, :ok} ->
         Logger.info("customers table has been created")
@@ -63,7 +59,7 @@ defmodule Rinha.Database do
            :transaction,
            attributes: [:id, :customer_id, :amount, :inserted_at, :type, :description],
            index: [:customer_id],
-           disc_copies: [:rinha@api01, :rinha@api02]
+           disc_copies: [node()]
          ) do
       {:atomic, :ok} ->
         Logger.info("transactions table has been created")
@@ -83,7 +79,7 @@ defmodule Rinha.Database do
     case :mnesia.create_table(
            :statement,
            attributes: [:customer_id, :limit, :balance, :last_transactions],
-           disc_copies: [:rinha@api01, :rinha@api02],
+           disc_copies: [node()],
            type: :ordered_set
          ) do
       {:atomic, :ok} ->

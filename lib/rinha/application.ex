@@ -20,7 +20,9 @@ defmodule Rinha.Application do
       {Phoenix.PubSub, name: Rinha.PubSub},
       {Highlander, Rinha.StatementConsumer},
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
-      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()}
+      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()},
+      Rinha.Transactions.TransactionServer,
+      Rinha.Statements.StatementServer
       # {Highlander, Rinha.NodeMonitor}
     ]
 

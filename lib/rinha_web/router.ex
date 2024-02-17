@@ -1,7 +1,7 @@
 defmodule RinhaWeb.Router do
   use Plug.Router
 
-  alias Rinha.{Statements, Transactions}
+  alias Rinha.{Customers, Statements, Transactions}
 
   plug(Plug.Logger)
   plug(:match)
@@ -29,18 +29,23 @@ defmodule RinhaWeb.Router do
         description: conn.body_params["descricao"]
       }
 
-      case Transactions.create_transaction(params) do
-        {:ok, transaction} ->
-          conn
-          |> put_resp_content_type("application/json")
-          |> send_resp(
-            200,
-            Jason.encode!(%{
-              limite: transaction.customer.limit,
-              saldo: transaction.customer.balance
-            })
-          )
+      with %Ecto.Changeset{valid?: true} <- Transactions.Transaction.changeset(params),
+           {:ok, customer, new_balance} <- Customers.check_limit(params[:customer_id], params[:type], params[:amount]) do
 
+        transaction_attrs = Map.put(params, :customer, customer)
+
+        :ok = TransactionServer.create_transaction(transaction_attrs)
+
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(
+          200,
+          Jason.encode!(%{
+            limite: customer.limit,
+            saldo: customer.balance
+          })
+        )
+      else
         {:error, %Ecto.Changeset{} = changeset} ->
           conn
           |> put_resp_content_type("application/json")
