@@ -5,6 +5,7 @@ services:
     build: .
     # image: norbajr/rinha-norba-renan-elixir:latest
     hostname: api01
+    container_name: api01
     networks:
       - elixir-cluster
     environment:
@@ -21,6 +22,7 @@ services:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
     <<: *api
     hostname: api02
+    container_name: api02
     networks:
       - elixir-cluster
     environment:
@@ -29,11 +31,11 @@ services:
 
     depends_on:
       - api01
-
-    command: [ "sh", "-c", "sleep 3 && /app/bin/rinha start" ]
+    # command: [ "sh", "-c", "sleep 3 && /app/bin/rinha start" ]
 
   nginx:
     image: nginx:latest
+    container_name: nginx
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     networks:

@@ -50,10 +50,10 @@ defmodule Rinha.Database do
 
   # def replicate_tables(node) do
   #   :mnesia.change_config(:extra_db_nodes, [node])
-  #   :mnesia.add_table_copy(:schema, node, :disc_copies)
-  #   :mnesia.add_table_copy(:customer, node, :disc_copies)
-  #   :mnesia.add_table_copy(:transaction, node, :disc_copies)
-  #   :mnesia.add_table_copy(:statement, node, :disc_copies)
+  #   :mnesia.add_table_copy(:schema, node, :disc_only_copies)
+  #   :mnesia.add_table_copy(:customer, node, :disc_only_copies)
+  #   :mnesia.add_table_copy(:transaction, node, :disc_only_copies)
+  #   :mnesia.add_table_copy(:statement, node, :disc_only_copies)
 
   #   :ok
   # end
@@ -68,7 +68,7 @@ defmodule Rinha.Database do
     case :mnesia.create_table(
            :customer,
            attributes: [:id, :limit, :balance],
-           disc_copies: nodes
+           disc_only_copies: nodes
          ) do
       {:atomic, :ok} ->
         Logger.info("customers table has been created")
@@ -89,7 +89,7 @@ defmodule Rinha.Database do
            :transaction,
            attributes: [:id, :customer_id, :amount, :inserted_at, :type, :description],
            index: [:customer_id],
-           disc_copies: nodes
+           disc_only_copies: nodes
          ) do
       {:atomic, :ok} ->
         Logger.info("transactions table has been created")
@@ -109,7 +109,7 @@ defmodule Rinha.Database do
     case :mnesia.create_table(
            :statement,
            attributes: [:customer_id, :limit, :balance, :last_transactions],
-           disc_copies: nodes
+           disc_only_copies: nodes
          ) do
       {:atomic, :ok} ->
         Logger.info("statement table has been created")
