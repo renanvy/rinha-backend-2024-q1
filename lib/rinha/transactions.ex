@@ -1,6 +1,7 @@
 defmodule Rinha.Transactions do
-  alias Rinha.Statements
+  alias Rinha.Customers.Customer
   alias Rinha.Transactions.Transaction
+  alias Phoenix.PubSub
 
   def get_transactions(nil), do: {:error, :customer_not_found}
 
@@ -50,7 +51,12 @@ defmodule Rinha.Transactions do
          transaction.customer.balance}
       )
 
-      :ok = Statements.StatementServer.add_transaction(transaction)
+      :ok =
+        PubSub.local_broadcast(
+          Rinha.PubSub,
+          "customer_statement:#{transaction.customer_id}",
+          transaction
+        )
     end)
   end
 end

@@ -34,7 +34,12 @@ defmodule RinhaWeb.Router do
              Customers.check_limit(params[:customer_id], params[:type], params[:amount]) do
         transaction_attrs = Map.put(params, :customer, customer)
 
-        :ok = Transactions.TransactionServer.create_transaction(transaction_attrs)
+        :ok =
+          Phoenix.PubSub.local_broadcast(
+            Rinha.PubSub,
+            "customer_transactions:#{customer_id}",
+            transaction_attrs
+          )
 
         conn
         |> put_resp_content_type("application/json")
@@ -53,6 +58,7 @@ defmodule RinhaWeb.Router do
             422,
             Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
           )
+
         {:atomic, {:error, %Ecto.Changeset{} = changeset}} ->
           conn
           |> put_resp_content_type("application/json")

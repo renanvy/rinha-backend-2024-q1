@@ -3,20 +3,29 @@ defmodule Rinha.Statements.StatementServer do
 
   alias Rinha.Statements
 
-  def add_transaction(transaction) do
-    GenServer.cast(__MODULE__, {:add_transaction, transaction})
+  def start_link(customer_id) do
+    GenServer.start_link(__MODULE__, customer_id, name: name(customer_id))
   end
 
-  def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  def init(customer_id) do
+    :ok = Phoenix.PubSub.subscribe(Rinha.PubSub, "customer_statement:#{customer_id}")
+
+    {:ok, nil}
   end
 
-  def init(state) do
-    {:ok, state}
-  end
-
-  def handle_cast({:add_transaction, transaction}, state) do
+  def handle_info({:add_transaction, transaction}, state) do
     {:atomic, _transaction} = Statements.add_transaction(transaction)
     {:noreply, state}
+  end
+
+  def child_spec(customer_id) do
+    %{
+      id: :"statement_server_#{customer_id}",
+      start: {__MODULE__, :start_link, [customer_id]}
+    }
+  end
+
+  defp name(customer_id) do
+    {:via, Registry, {Rinha.Registry, "customer_statement_#{customer_id}"}}
   end
 end
