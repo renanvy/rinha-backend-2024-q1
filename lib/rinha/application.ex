@@ -11,7 +11,8 @@ defmodule Rinha.Application do
   def start(_type, _args) do
     topologies = [
       gossip: [
-        strategy: Cluster.Strategy.Gossip
+        strategy: Cluster.Strategy.Epmd,
+        config: [hosts: [:api01@localhost, :api02@localhost]]
       ]
     ]
 
