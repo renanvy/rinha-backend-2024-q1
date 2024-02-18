@@ -40,6 +40,6 @@ defmodule Rinha.Application do
   end
 
   defp port do
-    Application.get_env(:rinha, :port, 4000)
+    Application.get_env(:rinha, :port)
   end
 end

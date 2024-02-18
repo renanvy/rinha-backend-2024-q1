@@ -3,7 +3,7 @@ defmodule RinhaWeb.Router do
 
   alias Rinha.{Customers, Statements, Transactions}
 
-  plug(Plug.Logger)
+  # plug(Plug.Logger)
   plug(:match)
 
   plug(Plug.Parsers,
