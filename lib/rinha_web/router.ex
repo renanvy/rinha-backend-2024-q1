@@ -38,7 +38,7 @@ defmodule RinhaWeb.Router do
           Phoenix.PubSub.local_broadcast(
             Rinha.PubSub,
             "customer_transactions:#{customer_id}",
-            transaction_attrs
+            {:create_transaction, transaction_attrs}
           )
 
         conn

@@ -13,6 +13,7 @@ defmodule Rinha.Transactions.TransactionServer do
 
   def handle_info({:create_transaction, params}, state) do
     {:atomic, _transaction} = Rinha.Transactions.create_transaction(params)
+
     {:noreply, state}
   end
 

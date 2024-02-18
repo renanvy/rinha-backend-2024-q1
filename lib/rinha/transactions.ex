@@ -1,5 +1,4 @@
 defmodule Rinha.Transactions do
-  alias Rinha.Customers.Customer
   alias Rinha.Transactions.Transaction
   alias Phoenix.PubSub
 
@@ -21,7 +20,7 @@ defmodule Rinha.Transactions do
         PubSub.local_broadcast(
           Rinha.PubSub,
           "customer_statement:#{transaction.customer_id}",
-          transaction
+          {:add_transaction, transaction}
         )
     end)
   end
