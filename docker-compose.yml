@@ -4,13 +4,15 @@ services:
   api01: &api
     build: .
     # image: norbajr/rinha-norba-renan-elixir:latest
-    hostname: api01
+    hostname: localhost
     container_name: api01
-    networks:
-      - elixir-cluster
+    network_mode: host
+    # networks:
+    #   - elixir-cluster
     environment:
-      - RELEASE_NODE=rinha
+      - RELEASE_NODE=api01
       - RELEASE_COOKIE=rinha
+      - PORT=4000
 
     deploy:
       resources:
@@ -21,13 +23,14 @@ services:
   api02:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
     <<: *api
-    hostname: api02
+    hostname: localhost
     container_name: api02
-    networks:
-      - elixir-cluster
+    # networks:
+    #   - elixir-cluster
     environment:
-      - RELEASE_NODE=rinha
+      - RELEASE_NODE=api02
       - RELEASE_COOKIE=rinha
+      - PORT=4001
 
     depends_on:
       - api01
@@ -36,10 +39,11 @@ services:
   nginx:
     image: nginx:latest
     container_name: nginx
+    network_mode: host
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    networks:
-      - elixir-cluster
+    # networks:
+    #   - elixir-cluster
     depends_on:
       - api01
       - api02
@@ -52,6 +56,6 @@ services:
           cpus: "0.3"
           memory: "30MB"
 
-networks:
-  elixir-cluster:
-    driver: bridge
+# networks:
+#   elixir-cluster:
+#     driver: bridge

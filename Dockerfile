@@ -20,7 +20,7 @@ RUN mix local.hex --force && \
 ENV MIX_ENV="prod"
 
 # set default port number
-ENV PORT=4000
+# ENV PORT=4000
 
 # install mix dependencies
 COPY mix.exs mix.lock ./

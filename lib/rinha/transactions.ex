@@ -16,6 +16,8 @@ defmodule Rinha.Transactions do
          transaction.customer.balance}
       )
 
+      {:atomic, _transaction} = Statements.add_transaction(transaction)
+
       :ok =
         PubSub.local_broadcast(
           Rinha.PubSub,
