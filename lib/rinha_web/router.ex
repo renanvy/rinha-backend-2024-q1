@@ -12,7 +12,6 @@ defmodule RinhaWeb.Router do
   )
 
   plug(:dispatch)
-  plug(Plug.Logger)
 
   post "/clientes/:id/transacoes" do
     customer_id = conn.params["id"] && String.to_integer(conn.params["id"])
