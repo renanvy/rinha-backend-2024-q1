@@ -26,7 +26,9 @@ defmodule Rinha.MixProject do
       {:jason, "~> 1.4"},
       {:libcluster, "~> 3.3"},
       {:ecto, "~> 3.11"},
-      {:highlander, github: "norbajunior/highlander"}
+      {:highlander, github: "norbajunior/highlander"},
+      {:uuidv7, "~> 0.2"},
+      {:phoenix_pubsub, "~> 2.1"}
     ]
   end
 end

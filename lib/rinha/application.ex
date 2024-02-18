@@ -5,18 +5,31 @@ defmodule Rinha.Application do
 
   use Application
 
+  alias Rinha.{Transactions.TransactionServer, Statements.StatementServer}
+
   @impl true
   def start(_type, _args) do
     topologies = [
-      epmd: [
-        strategy: Cluster.Strategy.Epmd,
-        config: [hosts: nodes()]
+      gossip: [
+        strategy: Cluster.Strategy.Gossip
       ]
     ]
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
       {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()},
+      {Phoenix.PubSub, name: Rinha.PubSub},
+      {Registry, keys: :unique, name: Rinha.Registry},
+      {TransactionServer, 1},
+      {TransactionServer, 2},
+      {TransactionServer, 3},
+      {TransactionServer, 4},
+      {TransactionServer, 5},
+      {StatementServer, 1},
+      {StatementServer, 2},
+      {StatementServer, 3},
+      {StatementServer, 4},
+      {StatementServer, 5},
       {Highlander, Rinha.NodeMonitor}
     ]
 
@@ -27,10 +40,6 @@ defmodule Rinha.Application do
   end
 
   defp port do
-    Application.get_env(:rinha, :port, 4000)
-  end
-
-  defp nodes do
-    Application.get_env(:rinha, :nodes, [])
+    Application.get_env(:rinha, :port)
   end
 end
