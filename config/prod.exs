@@ -1,7 +1,7 @@
 import Config
 
 config :rinha,
-  nodes: [:api01@localhost, :api02@localhost]
+  nodes: [:rinha@api01, :rinha@api02]
 
 # Do not print debug messages in production
 config :logger, level: :info

@@ -12,13 +12,13 @@ defmodule Rinha.Application do
     topologies = [
       gossip: [
         strategy: Cluster.Strategy.Epmd,
-        config: [hosts: [:api01@localhost, :api02@localhost]]
+        config: [hosts: nodes()]
       ]
     ]
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
-      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: System.get_env("PORT")},
+      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: port()},
       {Phoenix.PubSub, name: Rinha.PubSub},
       {Registry, keys: :unique, name: Rinha.Registry},
       {TransactionServer, 1},
@@ -38,5 +38,13 @@ defmodule Rinha.Application do
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Rinha.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp nodes do
+    Application.get_env(:rinha, :nodes)
+  end
+
+  defp port do
+    Application.get_env(:rinha, :port)
   end
 end
