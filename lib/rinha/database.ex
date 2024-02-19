@@ -60,7 +60,11 @@ defmodule Rinha.Database do
 
   defp create_tables(nodes) do
     :ok = create_table_customers(nodes)
-    :ok = create_table_transactions(nodes)
+    :ok = create_table_transactions(nodes, 1)
+    :ok = create_table_transactions(nodes, 2)
+    :ok = create_table_transactions(nodes, 3)
+    :ok = create_table_transactions(nodes, 4)
+    :ok = create_table_transactions(nodes, 5)
     :ok = create_table_statements(nodes)
   end
 
@@ -84,11 +88,10 @@ defmodule Rinha.Database do
     end
   end
 
-  defp create_table_transactions(nodes) do
+  defp create_table_transactions(nodes, customer_id) do
     case :mnesia.create_table(
-           :transaction,
-           attributes: [:id, :customer_id, :amount, :inserted_at, :type, :description],
-           index: [:customer_id],
+           :"transaction_#{customer_id}",
+           attributes: [:id, :amount, :inserted_at, :type, :description],
            disc_copies: nodes
          ) do
       {:atomic, :ok} ->
