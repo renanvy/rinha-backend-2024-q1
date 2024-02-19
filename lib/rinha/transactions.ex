@@ -17,12 +17,12 @@ defmodule Rinha.Transactions do
 
   defp do_create_transaction(attrs) do
     case Transaction.changeset(attrs) do
-      %Ecto.Changeset{valid?: true} = changeset ->
+      %Ecto.Changeset{valid?: true} ->
         transaction = Transaction.new(attrs)
 
         :mnesia.write(
           {:"transaction_#{transaction.customer_id}", transaction.id, transaction.amount,
-          transaction.inserted_at, transaction.type, transaction.description}
+           transaction.inserted_at, transaction.type, transaction.description}
         )
 
         {:ok, transaction}
@@ -36,8 +36,10 @@ defmodule Rinha.Transactions do
     case result do
       {:atomic, {:ok, result}} ->
         {:ok, result}
+
       {:atomic, {:error, result}} ->
         {:error, result}
+
       {:aborted, {:error, error}} ->
         {:error, error}
     end

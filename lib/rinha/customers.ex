@@ -3,7 +3,7 @@ defmodule Rinha.Customers do
   alias Rinha.Transactions.Transaction
 
   def get_customer(id) do
-    case :mnesia.read({:customer, id}) do
+    case :mnesia.wread({:customer, id}) do
       [{:customer, id, limit, balance}] ->
         {:ok, Customer.new(%{id: id, limit: limit, balance: balance})}
 
