@@ -19,7 +19,7 @@ defmodule Rinha.Transactions do
         {:"transaction_#{t.customer_id}", t.id, t.amount, t.inserted_at, t.type, t.description}
       )
 
-      Customers.update_balance(t.customer) |> IO.inspect()
+      Customers.update_balance(t.customer)
 
       Rinha.local_broadcast("customer_statement:#{t.customer_id}", {:add_transaction, t})
     end)

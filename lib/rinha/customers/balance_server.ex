@@ -52,7 +52,6 @@ defmodule Rinha.Customers.BalanceServer do
     {:via, Registry, {Rinha.Registry, "customer_balance_#{customer_id}"}}
   end
 
-  @impl true
   def child_spec(customer_id) do
     %{
       id: :"balance_server_#{customer_id}",
