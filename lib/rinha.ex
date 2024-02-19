@@ -3,16 +3,7 @@ defmodule Rinha do
   Documentation for `Rinha`.
   """
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Rinha.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def local_broadcast(topic, msg) do
+    Phoenix.PubSub.local_broadcast(Rinha.PubSub, topic, msg)
   end
 end

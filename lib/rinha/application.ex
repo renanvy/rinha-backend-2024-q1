@@ -5,7 +5,11 @@ defmodule Rinha.Application do
 
   use Application
 
-  alias Rinha.{Transactions.TransactionServer, Statements.StatementServer}
+  alias Rinha.{
+    Customers.BalanceServer,
+    Transactions.TransactionServer,
+    Statements.StatementServer
+  }
 
   @impl true
   def start(_type, _args) do
@@ -20,6 +24,12 @@ defmodule Rinha.Application do
       {Bandit, plug: RinhaWeb.Router, scheme: :http, port: System.get_env("PORT")},
       {Phoenix.PubSub, name: Rinha.PubSub},
       {Registry, keys: :unique, name: Rinha.Registry},
+      {Highlander, Rinha.NodeMonitor},
+      {BalanceServer, 1},
+      {BalanceServer, 2},
+      {BalanceServer, 3},
+      {BalanceServer, 4},
+      {BalanceServer, 5},
       {TransactionServer, 1},
       {TransactionServer, 2},
       {TransactionServer, 3},
@@ -29,8 +39,7 @@ defmodule Rinha.Application do
       {StatementServer, 2},
       {StatementServer, 3},
       {StatementServer, 4},
-      {StatementServer, 5},
-      {Highlander, Rinha.NodeMonitor}
+      {StatementServer, 5}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

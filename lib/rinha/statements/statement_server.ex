@@ -7,12 +7,14 @@ defmodule Rinha.Statements.StatementServer do
     GenServer.start_link(__MODULE__, customer_id, name: name(customer_id))
   end
 
+  @impl true
   def init(customer_id) do
     :ok = Phoenix.PubSub.subscribe(Rinha.PubSub, "customer_statement:#{customer_id}")
 
-    {:ok, nil}
+    {:ok, %{customer_id: customer_id}}
   end
 
+  @impl true
   def handle_info({:add_transaction, transaction}, state) do
     {:atomic, _transaction} = Statements.add_transaction(transaction)
     {:noreply, state}

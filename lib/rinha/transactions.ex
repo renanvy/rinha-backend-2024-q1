@@ -1,27 +1,31 @@
 defmodule Rinha.Transactions do
-  alias Rinha.Transactions.Transaction
-  alias Phoenix.PubSub
+  alias Rinha.{Customers, Transactions.Transaction}
 
-  def create_transaction(attrs) do
+  def new_transaction(attrs) do
+    %Transaction{
+      id: UUIDv7.generate(),
+      amount: attrs.amount,
+      customer_id: attrs.customer_id,
+      customer: attrs.customer,
+      type: attrs.type,
+      description: attrs.description,
+      inserted_at: DateTime.utc_now()
+    }
+  end
+
+  def create_transaction(t = %Transaction{}) do
     :mnesia.transaction(fn ->
-      transaction = Transaction.new(attrs)
-
       :mnesia.write(
-        {:"transaction_#{transaction.customer_id}", transaction.id, transaction.amount,
-         transaction.inserted_at, transaction.type, transaction.description}
+        {:"transaction_#{t.customer_id}", t.id, t.amount, t.inserted_at, t.type, t.description}
       )
 
-      :mnesia.write(
-        {:customer, transaction.customer_id, transaction.customer.limit,
-         transaction.customer.balance}
-      )
+      Customers.update_balance(t.customer) |> IO.inspect()
 
-      :ok =
-        PubSub.local_broadcast(
-          Rinha.PubSub,
-          "customer_statement:#{transaction.customer_id}",
-          {:add_transaction, transaction}
-        )
+      Rinha.local_broadcast("customer_statement:#{t.customer_id}", {:add_transaction, t})
     end)
+  end
+
+  def change_transaction(attrs) do
+    Transaction.changeset(attrs)
   end
 end

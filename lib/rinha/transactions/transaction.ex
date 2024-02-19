@@ -24,16 +24,4 @@ defmodule Rinha.Transactions.Transaction do
     |> validate_length(:description, min: 1, max: 10)
     |> validate_number(:amount, greater_than: 0)
   end
-
-  def new(attrs) do
-    %__MODULE__{
-      id: UUIDv7.generate(),
-      amount: attrs.amount,
-      customer_id: attrs.customer_id,
-      customer: attrs.customer,
-      type: attrs.type,
-      description: attrs.description,
-      inserted_at: DateTime.utc_now()
-    }
-  end
 end

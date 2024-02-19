@@ -1,9 +1,10 @@
 defmodule RinhaWeb.Router do
   use Plug.Router
 
-  alias Rinha.{Customers, Statements, Transactions}
+  alias Rinha.{Customers, Statements, Transactions, Transactions.Transaction}
 
   plug(:match)
+  plug(Plug.Logger)
 
   plug(Plug.Parsers,
     parsers: [:json],
@@ -28,27 +29,21 @@ defmodule RinhaWeb.Router do
         description: conn.body_params["descricao"]
       }
 
-      with %Ecto.Changeset{valid?: true} <- Transactions.Transaction.changeset(params),
-           {:atomic, {:ok, customer}} <-
-             Customers.check_limit(params[:customer_id], params[:type], params[:amount]) do
-        transaction_attrs = Map.put(params, :customer, customer)
-
-        :ok =
-          Phoenix.PubSub.local_broadcast(
-            Rinha.PubSub,
-            "customer_transactions:#{customer_id}",
-            {:create_transaction, transaction_attrs}
-          )
-
+      with %Ecto.Changeset{valid?: true, changes: data} <-
+             Transactions.change_transaction(params),
+           {:ok, new_balance, limit} <-
+             Customers.BalanceServer.check_limit(customer_id, data.type, data.amount),
+           attrs <-
+             Map.merge(params, %{customer: %{id: customer_id, limit: limit, balance: new_balance}}),
+           %Transaction{} = t <- Transactions.new_transaction(attrs),
+           :ok <-
+             Rinha.local_broadcast(
+               "customer_transactions:#{customer_id}",
+               {:create_transaction, t}
+             ) do
         conn
         |> put_resp_content_type("application/json")
-        |> send_resp(
-          200,
-          Jason.encode!(%{
-            limite: customer.limit,
-            saldo: customer.balance
-          })
-        )
+        |> send_resp(200, Jason.encode!(%{limite: limit, saldo: new_balance}))
       else
         %Ecto.Changeset{valid?: false} = changeset ->
           conn
@@ -58,12 +53,12 @@ defmodule RinhaWeb.Router do
             Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
           )
 
-        {:atomic, {:error, %Ecto.Changeset{} = changeset}} ->
+        :no_limit ->
           conn
           |> put_resp_content_type("application/json")
           |> send_resp(
             422,
-            Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
+            Jason.encode!(%{errors: [%{limit: "Limite atingido"}]})
           )
       end
     end
