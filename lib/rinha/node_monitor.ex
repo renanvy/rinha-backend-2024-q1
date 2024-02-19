@@ -19,7 +19,6 @@ defmodule Rinha.NodeMonitor do
 
   @impl true
   def handle_info({:nodeup, _node}, state) do
-    IO.inspect("here")
     Rinha.Database.setup(nodes())
 
     {:noreply, state}

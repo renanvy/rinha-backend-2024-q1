@@ -4,7 +4,7 @@ defmodule Rinha.Statements.StatementServer do
   alias Rinha.Statements
 
   def start_link(customer_id) do
-    GenServer.start_link(__MODULE__, [customer_id], name: name(customer_id))
+    GenServer.start_link(__MODULE__, customer_id, name: name(customer_id))
   end
 
   def init(customer_id) do
