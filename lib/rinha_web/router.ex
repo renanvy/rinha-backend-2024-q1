@@ -32,7 +32,11 @@ defmodule RinhaWeb.Router do
       with %Ecto.Changeset{valid?: true, changes: data} <-
              Transactions.change_transaction(params),
            {:ok, new_balance, limit} <-
-             Customers.BalanceServer.check_limit(customer_id, data.type, data.amount),
+             :rpc.call(:api01@localhost, Customers.BalanceServer, :check_limit, [
+               customer_id,
+               data.type,
+               data.amount
+             ]),
            attrs <-
              Map.merge(params, %{customer: %{id: customer_id, limit: limit, balance: new_balance}}),
            %Transaction{} = t <- Transactions.new_transaction(attrs),
