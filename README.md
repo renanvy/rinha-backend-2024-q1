@@ -8,6 +8,9 @@ Versão em Elixir da [rinha de backend 2ª edição](https://github.com/zanfranc
 - Mnesia
 - NGINX
 
+![WhatsApp Image 2024-02-19 at 18 34 47](https://github.com/renanvy/rinha-backend-2024-q1/assets/2266325/09255633-d4f4-489b-a73e-801b0afef573)
+
+
 ## Rodar aplicação
 
 TODO
