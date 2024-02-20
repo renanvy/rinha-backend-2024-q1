@@ -8,7 +8,7 @@ Versão em Elixir da [rinha de backend 2ª edição](https://github.com/zanfranc
 - Mnesia
 - NGINX
 
-![image](https://github.com/renanvy/rinha-backend-2024-q1/assets/218034/8ad40136-cde4-4069-b8fa-4385e15b3cb9)
+![image](https://github.com/renanvy/rinha-backend-2024-q1/assets/218034/fc43115c-9892-411c-894a-b54eb69aa085)
 
 ## Rodar aplicação
 
