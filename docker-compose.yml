@@ -1,9 +1,10 @@
 version: "3.5"
 
 services:
-  api01: &api
-    build: .
-    # image: norbajr/rinha-norba-renan-elixir:latest
+  api01:
+    # build: .
+    &api
+    image: norbajr/rinha-norba-renan-elixir:latest
     hostname: localhost
     container_name: api01
     network_mode: host
