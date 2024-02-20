@@ -5,8 +5,6 @@ defmodule Rinha.Application do
 
   use Application
 
-  alias Rinha.{Transactions.TransactionServer, Statements.StatementServer}
-
   @impl true
   def start(_type, _args) do
     topologies = [
@@ -17,7 +15,7 @@ defmodule Rinha.Application do
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
-      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: System.get_env("PORT")},
+      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: 4000},
       {Highlander, Rinha.NodeMonitor}
     ]
 

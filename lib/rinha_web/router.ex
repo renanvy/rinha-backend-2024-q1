@@ -40,7 +40,7 @@ defmodule RinhaWeb.Router do
             })
           )
 
-        {:error, changeset} ->
+        {:error, _changeset} ->
           conn
           |> put_resp_content_type("application/json")
           |> send_resp(422, "")
