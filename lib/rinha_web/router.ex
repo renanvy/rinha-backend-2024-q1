@@ -39,6 +39,7 @@ defmodule RinhaWeb.Router do
               saldo: customer.balance
             })
           )
+
         {:error, changeset} ->
           conn
           |> put_resp_content_type("application/json")

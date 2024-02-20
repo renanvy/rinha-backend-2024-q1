@@ -3,31 +3,27 @@ defmodule Rinha.Database do
 
   def setup(nodes) when is_list(nodes) do
     with _ <- :rpc.multicall(nodes, :mnesia, :stop, []),
-         _ <- :rpc.multicall(nodes, :mnesia, :delete_schema, nodes),
          :ok <- create_schema(nodes),
          _ <- :rpc.multicall(nodes, :mnesia, :start, []),
          :ok <- create_tables(nodes),
+         :ok <-
+           :mnesia.wait_for_tables(
+             [
+               :customer,
+               :transaction_1,
+               :transaction_2,
+               :transaction_3,
+               :transaction_4,
+               :transaction_5,
+               :statement
+             ],
+             2000
+           ),
+         :ok <- maybe_clear_tables(),
          :ok <- Rinha.Seeds.start() do
       :ok
-    else
-      error ->
-        error
     end
   end
-
-  # def replicate(node) do
-  #   :rpc.call(node, :mnesia, :stop, [])
-
-  #   with :ok <- :rpc.call(node, :mnesia, :start, []),
-  #        :ok <- replicate_tables(node) do
-  #     Logger.info("Table replicated for #{inspect(node)}")
-  #     :ok
-  #   else
-  #     error ->
-  #       Logger.error("Error configuring mnesia nodes: #{inspect(error)}")
-  #       :ok
-  #   end
-  # end
 
   defp create_schema(nodes) do
     case :mnesia.create_schema(nodes) do
@@ -43,28 +39,30 @@ defmodule Rinha.Database do
         Logger.info("error creating schema #{inspect(error)}")
         error
     end
+  end
 
+  defp maybe_clear_tables do
+    {:atomic, _} = :mnesia.clear_table(:transaction_1)
+    {:atomic, _} = :mnesia.clear_table(:transaction_2)
+    {:atomic, _} = :mnesia.clear_table(:transaction_3)
+    {:atomic, _} = :mnesia.clear_table(:transaction_4)
+    {:atomic, _} = :mnesia.clear_table(:transaction_5)
+    {:atomic, _} = :mnesia.clear_table(:customer)
+    {:atomic, _} = :mnesia.clear_table(:statement)
+    Logger.info("tables has been cleared")
     :ok
   end
 
-  # def replicate_tables(node) do
-  #   :mnesia.change_config(:extra_db_nodes, [node])
-  #   :mnesia.add_table_copy(:schema, node, :disc_copies)
-  #   :mnesia.add_table_copy(:customer, node, :disc_copies)
-  #   :mnesia.add_table_copy(:transaction, node, :disc_copies)
-  #   :mnesia.add_table_copy(:statement, node, :disc_copies)
-
-  #   :ok
-  # end
-
   defp create_tables(nodes) do
-    :ok = create_table_customers(nodes)
-    :ok = create_table_transactions(nodes, 1)
-    :ok = create_table_transactions(nodes, 2)
-    :ok = create_table_transactions(nodes, 3)
-    :ok = create_table_transactions(nodes, 4)
-    :ok = create_table_transactions(nodes, 5)
-    :ok = create_table_statements(nodes)
+    with :ok <- create_table_customers(nodes),
+         :ok <- create_table_transactions(nodes, 1),
+         :ok <- create_table_transactions(nodes, 2),
+         :ok <- create_table_transactions(nodes, 3),
+         :ok <- create_table_transactions(nodes, 4),
+         :ok <- create_table_transactions(nodes, 5),
+         :ok <- create_table_statements(nodes) do
+      :ok
+    end
   end
 
   defp create_table_customers(nodes) do
@@ -88,8 +86,10 @@ defmodule Rinha.Database do
   end
 
   defp create_table_transactions(nodes, customer_id) do
+    table_name = :"transaction_#{customer_id}"
+
     case :mnesia.create_table(
-           :"transaction_#{customer_id}",
+           table_name,
            attributes: [:id, :amount, :inserted_at, :type, :description],
            disc_copies: nodes
          ) do
@@ -97,7 +97,7 @@ defmodule Rinha.Database do
         Logger.info("transactions table has been created")
         :ok
 
-      {:aborted, {:already_exists, :transaction}} ->
+      {:aborted, {:already_exists, ^table_name}} ->
         Logger.info("transactions table already exists")
         :ok
 
