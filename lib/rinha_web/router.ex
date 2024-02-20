@@ -1,7 +1,7 @@
 defmodule RinhaWeb.Router do
   use Plug.Router
 
-  alias Rinha.{Customers, Statements, Transactions}
+  alias Rinha.{Statements, Transactions}
 
   plug(:match)
 
@@ -19,7 +19,7 @@ defmodule RinhaWeb.Router do
     if customer_id < 1 || customer_id > 5 do
       conn
       |> put_resp_content_type("application/json")
-      |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
+      |> send_resp(404, "")
     else
       params = %{
         amount: conn.body_params["valor"],
@@ -28,43 +28,22 @@ defmodule RinhaWeb.Router do
         description: conn.body_params["descricao"]
       }
 
-      with %Ecto.Changeset{valid?: true} <- Transactions.Transaction.changeset(params),
-           {:atomic, {:ok, customer}} <-
-             Customers.check_limit(params[:customer_id], params[:type], params[:amount]) do
-        transaction_attrs = Map.put(params, :customer, customer)
-
-        :ok =
-          Phoenix.PubSub.local_broadcast(
-            Rinha.PubSub,
-            "customer_transactions:#{customer_id}",
-            {:create_transaction, transaction_attrs}
-          )
-
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(
-          200,
-          Jason.encode!(%{
-            limite: customer.limit,
-            saldo: customer.balance
-          })
-        )
-      else
-        %Ecto.Changeset{valid?: false} = changeset ->
+      case Transactions.create_transaction(params) do
+        {:ok, {_transaction, customer}} ->
           conn
           |> put_resp_content_type("application/json")
           |> send_resp(
-            422,
-            Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
+            200,
+            Jason.encode!(%{
+              limite: customer.limit,
+              saldo: customer.balance
+            })
           )
 
-        {:atomic, {:error, %Ecto.Changeset{} = changeset}} ->
+        {:error, _changeset} ->
           conn
           |> put_resp_content_type("application/json")
-          |> send_resp(
-            422,
-            Jason.encode!(%{errors: Ecto.Changeset.traverse_errors(changeset, &translate_error/1)})
-          )
+          |> send_resp(422, "")
       end
     end
   end
@@ -75,7 +54,7 @@ defmodule RinhaWeb.Router do
     if customer_id < 1 || customer_id > 5 do
       conn
       |> put_resp_content_type("application/json")
-      |> send_resp(404, Jason.encode!(%{errors: %{customer: ["Cliente não encontrado"]}}))
+      |> send_resp(404, "")
     else
       {:ok, statement} = Statements.get_statement(customer_id)
 
@@ -107,11 +86,5 @@ defmodule RinhaWeb.Router do
 
   match _ do
     send_resp(conn, 404, "Not Found")
-  end
-
-  defp translate_error({msg, opts}) do
-    Enum.reduce(opts, msg, fn {key, value}, acc ->
-      String.replace(acc, "%{#{key}}", fn _ -> to_string(value) end)
-    end)
   end
 end

@@ -5,8 +5,6 @@ defmodule Rinha.Application do
 
   use Application
 
-  alias Rinha.{Transactions.TransactionServer, Statements.StatementServer}
-
   @impl true
   def start(_type, _args) do
     topologies = [
@@ -17,19 +15,7 @@ defmodule Rinha.Application do
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Rinha.ClusterSupervisor]]},
-      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: System.get_env("PORT")},
-      {Phoenix.PubSub, name: Rinha.PubSub},
-      {Registry, keys: :unique, name: Rinha.Registry},
-      {TransactionServer, 1},
-      {TransactionServer, 2},
-      {TransactionServer, 3},
-      {TransactionServer, 4},
-      {TransactionServer, 5},
-      {StatementServer, 1},
-      {StatementServer, 2},
-      {StatementServer, 3},
-      {StatementServer, 4},
-      {StatementServer, 5},
+      {Bandit, plug: RinhaWeb.Router, scheme: :http, port: 4000},
       {Highlander, Rinha.NodeMonitor}
     ]
 
