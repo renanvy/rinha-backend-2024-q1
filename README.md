@@ -12,7 +12,9 @@ Versão em Elixir da [rinha de backend 2ª edição](https://github.com/zanfranc
 
 ## Rodar aplicação
 
-TODO
+```bash
+$ docker compose up
+```
 
 ## Autores
 
