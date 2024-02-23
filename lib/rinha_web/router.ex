@@ -1,7 +1,7 @@
 defmodule RinhaWeb.Router do
   use Plug.Router
 
-  alias Rinha.{Statements, Transactions}
+  alias Rinha.Accounts
 
   plug(:match)
 
@@ -11,80 +11,67 @@ defmodule RinhaWeb.Router do
     json_decoder: Jason
   )
 
+  plug(:check_account_id)
   plug(:dispatch)
 
   post "/clientes/:id/transacoes" do
-    customer_id = conn.params["id"] && String.to_integer(conn.params["id"])
+    params = %{
+      valor: conn.body_params["valor"],
+      account_id: conn.assigns.id,
+      tipo: conn.body_params["tipo"],
+      descricao: conn.body_params["descricao"]
+    }
 
-    if customer_id < 1 || customer_id > 5 do
-      conn
-      |> put_resp_content_type("application/json")
-      |> send_resp(404, "")
-    else
-      params = %{
-        amount: conn.body_params["valor"],
-        customer_id: customer_id,
-        type: conn.body_params["tipo"],
-        description: conn.body_params["descricao"]
-      }
+    case Accounts.create_transaction(params) do
+      {:ok, {_transaction, account}} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(200, Jason.encode!(%{limite: account.limit, saldo: account.balance}))
 
-      case Transactions.create_transaction(params) do
-        {:ok, {_transaction, customer}} ->
-          conn
-          |> put_resp_content_type("application/json")
-          |> send_resp(
-            200,
-            Jason.encode!(%{
-              limite: customer.limit,
-              saldo: customer.balance
-            })
-          )
-
-        {:error, _changeset} ->
-          conn
-          |> put_resp_content_type("application/json")
-          |> send_resp(422, "")
-      end
+      {:error, _changeset} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(422, "")
     end
   end
 
   get "/clientes/:id/extrato" do
-    customer_id = conn.params["id"] && String.to_integer(conn.params["id"])
-
-    if customer_id < 1 || customer_id > 5 do
-      conn
-      |> put_resp_content_type("application/json")
-      |> send_resp(404, "")
-    else
-      {:ok, statement} = Statements.get_statement(customer_id)
-
+    with {:ok, account} <- Accounts.get_account(conn.assigns.id) do
       conn
       |> put_resp_content_type("application/json")
       |> send_resp(
         200,
         Jason.encode!(%{
           saldo: %{
-            total: statement.balance,
+            total: account.balance,
             data_extrato: DateTime.utc_now(),
-            limite: statement.limit
+            limite: account.limit
           },
-          ultimas_transacoes:
-            statement.last_transactions
-            |> Enum.sort_by(& &1.inserted_at, {:desc, DateTime})
-            |> Enum.map(fn transaction ->
-              %{
-                valor: transaction.amount,
-                tipo: transaction.type,
-                descricao: transaction.description,
-                realizada_em: transaction.inserted_at
-              }
-            end)
+          ultimas_transacoes: account.latest_transactions
         })
       )
+    else
+      {:error, :account_not_found} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(404, "")
     end
   end
 
   match _ do
     send_resp(conn, 404, "Not Found")
+  end
+
+  defp check_account_id(conn, _opts) do
+    id = conn.params["id"] && String.to_integer(conn.params["id"])
+
+    if id in 1..5 do
+      Plug.Conn.assign(conn, :id, id)
+    else
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(404, "")
+      |> halt()
+    end
   end
 end
