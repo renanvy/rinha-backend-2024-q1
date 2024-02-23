@@ -2,25 +2,19 @@ defmodule Rinha.Database do
   require Logger
 
   def setup(nodes) when is_list(nodes) do
-    with _ <- :rpc.multicall(nodes, :mnesia, :stop, []),
+    with {_, []} <- :rpc.multicall(nodes, :mnesia, :stop, []),
          :ok <- create_schema(nodes),
-         _ <- :rpc.multicall(nodes, :mnesia, :start, []),
-         :ok <- create_tables(nodes),
+         {_, []} <- :rpc.multicall(nodes, :mnesia, :start, []),
+         :ok <- create_table_accounts(nodes),
          :ok <-
            :mnesia.wait_for_tables(
              [
-               :customer,
-               :transaction_1,
-               :transaction_2,
-               :transaction_3,
-               :transaction_4,
-               :transaction_5,
-               :statement
+               :account
              ],
              2000
            ),
          :ok <- maybe_clear_tables(),
-         :ok <- Rinha.Seeds.start() do
+         :ok <- Rinha.Seeds.run() do
       :ok
     end
   end
@@ -42,87 +36,28 @@ defmodule Rinha.Database do
   end
 
   defp maybe_clear_tables do
-    {:atomic, _} = :mnesia.clear_table(:transaction_1)
-    {:atomic, _} = :mnesia.clear_table(:transaction_2)
-    {:atomic, _} = :mnesia.clear_table(:transaction_3)
-    {:atomic, _} = :mnesia.clear_table(:transaction_4)
-    {:atomic, _} = :mnesia.clear_table(:transaction_5)
-    {:atomic, _} = :mnesia.clear_table(:customer)
-    {:atomic, _} = :mnesia.clear_table(:statement)
-    Logger.info("tables has been cleared")
+    {:atomic, _} = :mnesia.clear_table(:account)
+
+    Logger.info("tables have been cleared")
     :ok
   end
 
-  defp create_tables(nodes) do
-    with :ok <- create_table_customers(nodes),
-         :ok <- create_table_transactions(nodes, 1),
-         :ok <- create_table_transactions(nodes, 2),
-         :ok <- create_table_transactions(nodes, 3),
-         :ok <- create_table_transactions(nodes, 4),
-         :ok <- create_table_transactions(nodes, 5),
-         :ok <- create_table_statements(nodes) do
-      :ok
-    end
-  end
-
-  defp create_table_customers(nodes) do
+  defp create_table_accounts(nodes) do
     case :mnesia.create_table(
-           :customer,
-           attributes: [:id, :limit, :balance],
+           :account,
+           attributes: [:id, :limit, :balance, :latest_transactions],
            disc_copies: nodes
          ) do
       {:atomic, :ok} ->
-        Logger.info("customers table has been created")
+        Logger.info("accounts table has been created")
         :ok
 
-      {:aborted, {:already_exists, :customer}} ->
-        Logger.info("customers table already exists")
-        :ok
-
-      error ->
-        Logger.error("customers table was not created: #{inspect(error)}")
-        error
-    end
-  end
-
-  defp create_table_transactions(nodes, customer_id) do
-    table_name = :"transaction_#{customer_id}"
-
-    case :mnesia.create_table(
-           table_name,
-           attributes: [:id, :amount, :inserted_at, :type, :description],
-           disc_copies: nodes
-         ) do
-      {:atomic, :ok} ->
-        Logger.info("transactions table has been created")
-        :ok
-
-      {:aborted, {:already_exists, ^table_name}} ->
-        Logger.info("transactions table already exists")
+      {:aborted, {:already_exists, :account}} ->
+        Logger.info("accounts table already exists")
         :ok
 
       error ->
-        Logger.error("transactions table was not created: #{inspect(error)}")
-        error
-    end
-  end
-
-  defp create_table_statements(nodes) do
-    case :mnesia.create_table(
-           :statement,
-           attributes: [:customer_id, :limit, :balance, :last_transactions],
-           disc_copies: nodes
-         ) do
-      {:atomic, :ok} ->
-        Logger.info("statement table has been created")
-        :ok
-
-      {:aborted, {:already_exists, :statement}} ->
-        Logger.info("statement table already exists")
-        :ok
-
-      error ->
-        Logger.error("statement table was not created: #{inspect(error)}")
+        Logger.error("accounts table was not created: #{inspect(error)}")
         error
     end
   end
