@@ -51,9 +51,14 @@ defmodule Rinha.Accounts do
   @spec create_transaction(map()) ::
           {:ok, {Transaction.t(), Account.t()}} | {:error, Ecto.Changeset.t()}
   def create_transaction(attrs) do
+    with {:ok, transaction} <- Transaction.changeset(attrs) do
+      do_create_transaction(transaction, attrs[:account_id])
+    end
+  end
+
+  defp do_create_transaction(transaction, account_id) do
     :mnesia.transaction(fn ->
-      with {:ok, account} <- read_account(attrs[:account_id]),
-           {:ok, transaction} <- Transaction.changeset(attrs),
+      with {:ok, account} <- read_account(account_id),
            {:ok, account} <- change_account_balance(account, transaction),
            :ok <- write_transaction(account, transaction) do
         {:ok, {transaction, account}}
